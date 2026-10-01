@@ -22,11 +22,9 @@ if (!userData) { window.location.href = "login.html"; }
 
 let balance = (userData ? parseFloat(userData.balance) : 0) || parseFloat(localStorage.getItem("walletBalance")) || 0;
 let balanceHidden = false;
-// Converted checkin rewards: 500/120=4.17, 1000/120=8.33, 1500/120=12.5, 2000/120=16.67, 3000/120=25, 5000/120=41.67, 10000/120=83.33
-const CHECKIN_REWARDS = [4.17, 8.33, 12.5, 16.67, 25, 41.67, 83.33];
+const CHECKIN_REWARDS = [500, 1000, 1500, 2000, 3000, 5000, 10000];
 let checkinData = JSON.parse(localStorage.getItem("checkinData")) || { streak: 0, lastCheckin: null, claimedDays: [] };
-// 2000 / 120 = 16.67 GHS
-const CLAIM_AMOUNT = 16.67;
+const CLAIM_AMOUNT = 2000;
 const CLAIM_INTERVAL = 60;
 const MAX_CLAIMS_PER_DAY = 50;
 let claimData = JSON.parse(localStorage.getItem("claimData")) || { count: 0, lastClaim: 0, dateStr: "", claimsToday: 0 };
@@ -35,12 +33,12 @@ let secondsLeft = CLAIM_INTERVAL;
 let telegramLink = "https://t.me/apex_customercare";
 
 const TUTORIAL_STEPS = [
-  { id: "mineBtn", title: "Start Mining", desc: "Tap the Mine button to earn your first GH₵250. Mining runs daily!", position: "bottom" },
-  { id: "withdrawBtn", title: "Withdraw Cash", desc: "Tap Withdraw to cash out your earnings to your linked bank or mobile money account.", position: "bottom" },
+  { id: "mineBtn", title: "Start Mining", desc: "Tap the Mine button to earn your first ₦30,000. Mining runs daily!", position: "bottom" },
+  { id: "withdrawBtn", title: "Withdraw Cash", desc: "Tap Withdraw to cash out your earnings to your linked bank account.", position: "bottom" },
   { id: "tasksBtn", title: "Complete Tasks", desc: "Visit the Tasks page to earn extra cash by completing simple social media tasks.", position: "bottom" },
   { id: "eyeBtn", title: "Hide Balance", desc: "Tap the eye icon anytime to hide or show your balance for privacy.", position: "bottom" },
-  { id: "claimArea", title: "Claim Every Minute", desc: "Tap Claim every 60 seconds to collect GH₵16.67 free cash! Up to 50 times daily.", position: "top" },
-  { id: "checkinBtn", title: "Daily Check-In", desc: "Check in every day to collect increasing rewards: GH₵4.17, GH₵8.33, GH₵12.50, GH₵16.67, GH₵25, GH₵41.67, GH₵83.33!", position: "top" }
+  { id: "claimArea", title: "Claim Every Minute", desc: "Tap Claim every 60 seconds to collect ₦2,000 free cash! Up to 50 times daily.", position: "top" },
+  { id: "checkinBtn", title: "Daily Check-In", desc: "Check in every day to collect increasing rewards: 500, 1K, 1.5K, 2K, 3K, 5K, 10K!", position: "top" }
 ];
 let currentTutorialStep = 0;
 let tutorialActive = false;
@@ -281,7 +279,7 @@ function executeBounce() {
     userData.balance = balance;
     saveUserData();
 
-    addBounceToActivity("Withdrawal Reversed", amount, "Unsuccessful - Linked bank/momo account not verified");
+    addBounceToActivity("Withdrawal Reversed", amount, "Unsuccessful - Linked bank account not verified");
     sendBounceNotification(amount);
 
     localStorage.setItem("9jaCashBouncedWithdrawal", "true");
@@ -291,12 +289,12 @@ function executeBounce() {
       Swal.fire({
         icon: "warning",
         title: "Withdrawal Failed",
-        html: '<p style="color:#64748b;">Your withdrawal of <b>GH₵' + amount.toLocaleString('en-GH', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + '</b> was returned.</p><p style="color:#64748b;margin-top:8px;">Reason: <b>Linked account not verified</b></p>',
+        html: '<p style="color:#64748b;">Your withdrawal of <b>₦' + amount.toLocaleString() + '</b> was returned.</p><p style="color:#64748b;margin-top:8px;">Reason: <b>Linked bank account not verified</b></p>',
         confirmButtonText: "Verify Account",
         confirmButtonColor: "#ef4444"
       }).then(function (r) { if (r.isConfirmed) { verifyBankLink(); } });
     } else {
-      alert("Withdrawal Failed\nYour withdrawal of GH₵" + amount.toLocaleString('en-GH', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + " was returned.");
+      alert("Withdrawal Failed\nYour withdrawal of ₦" + amount.toLocaleString() + " was returned.");
       verifyBankLink();
     }
     isBouncing = false;
@@ -328,9 +326,7 @@ function checkPendingBounceOnLoad() {
 
 function maskNum(num) { if (!num || num.length < 4) return "****"; return "**** " + num.slice(-4); }
 
-function formatMoney(num) { 
-  return "GH₵" + Number(num || 0).toLocaleString("en-GH", { minimumFractionDigits: 2, maximumFractionDigits: 2 }); 
-}
+function formatMoney(num) { return "₦" + Number(num || 0).toLocaleString("en-NG"); }
 
 function updateBalance() {
   const el = document.getElementById("walletBalance");
@@ -363,8 +359,8 @@ function renderUserInfo() {
   const avatarEl = document.getElementById("userAvatar");
   const greetingEl = document.getElementById("greeting");
 
-  if (nameEl) nameEl.textContent = userData.name || userData.phone || "Ghana Cash User";
-  if (avatarEl) avatarEl.textContent = (userData.name || userData.phone || "G").charAt(0).toUpperCase();
+  if (nameEl) nameEl.textContent = userData.name || userData.phone || "9jaCash User";
+  if (avatarEl) avatarEl.textContent = (userData.name || userData.phone || "9").charAt(0).toUpperCase();
 
   const hrs = new Date().getHours();
   let greet = "Good morning";
@@ -419,17 +415,16 @@ function doCheckin() {
     Swal.fire({
       icon: "success",
       title: "Day " + checkinData.claimedDays.length + " Complete!",
-      text: "+GH₵" + amount.toFixed(2) + " added to your balance",
+      text: "+₦" + amount.toLocaleString() + " added to your balance",
       confirmButtonColor: "#6366f1"
     });
   } else {
-    showToast("Checked in! +GH₵" + amount.toFixed(2));
+    showToast("Checked in! +₦" + amount.toLocaleString());
   }
 }
 
 function startMining() {
-  // 30,000 NGN / 120 = 250 GHS
-  const minedAmount = 250;
+  const minedAmount = 30000;
   balance += minedAmount;
   userData.balance = balance;
   userData.totalMined = (userData.totalMined || 0) + minedAmount;
@@ -441,11 +436,11 @@ function startMining() {
     Swal.fire({
       icon: 'success',
       title: 'Mining Successful!',
-      text: 'You mined GH₵' + minedAmount.toLocaleString('en-GH', { minimumFractionDigits: 2 }) + ' today!',
+      text: 'You mined ₦' + minedAmount.toLocaleString() + ' today!',
       confirmButtonColor: '#6366f1'
     });
   } else {
-    showToast("Mined +GH₵" + minedAmount.toFixed(2));
+    showToast("Mined +₦" + minedAmount.toLocaleString());
   }
 }
 
@@ -516,14 +511,14 @@ function doClaim() {
 
   secondsLeft = CLAIM_INTERVAL;
   startClaimTimer();
-  showToast("Claimed +GH₵" + CLAIM_AMOUNT.toFixed(2));
+  showToast("Claimed +₦" + CLAIM_AMOUNT.toLocaleString());
 }
 
 function editBank() {
   if (typeof Swal === 'undefined') {
-    const bName = prompt("Enter Bank or Mobile Money Provider:", userData.bankName || "");
-    const accNum = prompt("Enter Account or Mobile Money Number:", userData.accountNumber || "");
-    const accName = prompt("Enter Account Holder Name:", userData.accountName || "");
+    const bName = prompt("Enter Bank Name:", userData.bankName || "");
+    const accNum = prompt("Enter Account Number:", userData.accountNumber || "");
+    const accName = prompt("Enter Account Name:", userData.accountName || "");
     if (bName && accNum) {
       userData.bankName = bName;
       userData.accountNumber = accNum;
@@ -535,10 +530,10 @@ function editBank() {
   }
 
   Swal.fire({
-    title: 'Update Linked Account',
+    title: 'Update Linked Bank',
     html: `
-      <input id="swal-bank" class="swal2-input" placeholder="Bank / MoMo Provider (e.g., MTN MoMo)" value="${userData.bankName || ''}">
-      <input id="swal-acc" class="swal2-input" placeholder="Account Number / Phone" value="${userData.accountNumber || ''}">
+      <input id="swal-bank" class="swal2-input" placeholder="Bank Name" value="${userData.bankName || ''}">
+      <input id="swal-acc" class="swal2-input" placeholder="Account Number" value="${userData.accountNumber || ''}">
       <input id="swal-name" class="swal2-input" placeholder="Account Holder Name" value="${userData.accountName || ''}">
     `,
     showCancelButton: true,
@@ -568,7 +563,7 @@ function editBank() {
 function renderBankInfo() {
   const bankNameText = document.getElementById("bankNameText");
   const bankMeta = document.getElementById("bankMeta");
-  if (bankNameText) bankNameText.textContent = userData.bankName || "No Bank/MoMo Linked";
+  if (bankNameText) bankNameText.textContent = userData.bankName || "No Bank Linked";
   if (bankMeta) bankMeta.textContent = (userData.accountNumber ? maskNum(userData.accountNumber) : "****") + " | " + (userData.accountName || "Not Set");
 }
 
@@ -609,7 +604,7 @@ function proceedToVerify() {
 function verifyBankLink() { window.location.href = "verify.html"; }
 
 function initReferrals() {
-  const code = userData ? (userData.referralCode || userData.phone || "GHANACASH") : "GHANACASH";
+  const code = userData ? (userData.referralCode || userData.phone || "9JACASH") : "9JACASH";
   const baseUrl = window.location.origin + window.location.pathname.replace("dashboard.html", "") + "start.html?ref=" + code;
 
   const input = document.getElementById("referralLinkInput");
@@ -620,7 +615,7 @@ function initReferrals() {
   if (countEl) countEl.textContent = userData.referralsCount || userData.referrals || 0;
   if (earnEl) earnEl.textContent = formatMoney(userData.referralEarnings || 0);
 
-  const msg = encodeURIComponent("Join me on 9jaCash Ghana to earn daily cash! Register here: " + baseUrl);
+  const msg = encodeURIComponent("Join me on 9jaCash to earn daily cash! Register here: " + baseUrl);
   const shareTg = document.getElementById("shareTelegram");
   if (shareTg) shareTg.href = "https://t.me/share/url?url=" + encodeURIComponent(baseUrl) + "&text=" + msg;
   const shareWa = document.getElementById("shareWhatsApp");
@@ -637,8 +632,8 @@ function copyReferralLink() {
 
 function copyReferralMessage() {
   const input = document.getElementById("referralLinkInput");
-  const code = userData ? (userData.referralCode || userData.phone || "GHANACASH") : "GHANACASH";
-  const msg = "Join 9jaCash Ghana today & earn daily cash!\nUse referral code: " + code + "\nLink: " + (input ? input.value : "");
+  const code = userData ? (userData.referralCode || userData.phone || "9JACASH") : "9JACASH";
+  const msg = "Join 9jaCash today & earn daily cash!\nUse referral code: " + code + "\nLink: " + (input ? input.value : "");
   navigator.clipboard.writeText(msg).then(() => showToast("Referral details copied!"));
 }
 
@@ -684,7 +679,7 @@ function renderActivities() {
           <div class="act-title">${act.title}</div>
           <div class="act-time">${act.time} ${act.status ? '• ' + act.status : ''}</div>
         </div>
-        <div class="${amountClass}">${sign}GH₵${Number(act.amount).toLocaleString('en-GH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</div>
+        <div class="${amountClass}">${sign}₦${Number(act.amount).toLocaleString()}</div>
       </div>
     `;
   }).join("");
@@ -701,7 +696,7 @@ function logout() {
 
 function sendBounceNotification(amount) {
   if ("Notification" in window && Notification.permission === "granted") {
-    new Notification("Withdrawal Returned", { body: "Your GH₵" + amount.toFixed(2) + " withdrawal was returned." });
+    new Notification("Withdrawal Returned", { body: "Your ₦" + amount.toLocaleString() + " withdrawal was returned." });
   }
 }
 
@@ -848,9 +843,8 @@ function initSocialPopup() {
 }
 
 function startLiveWithdrawalPopups() {
-  const users = ["Kofi A.", "Kwame O.", "Ama Y.", "Esi P.", "Akosua K."];
-  // Converted amounts (15k, 25k, 30k, 50k, 20k NGN divided by 120): 125, 208.33, 250, 416.67, 166.67 GHS
-  const amounts = [125, 208.33, 250, 416.67, 166.67];
+  const users = ["Musa B.", "Chidi O.", "Amina Y.", "Efe P.", "Blessing K."];
+  const amounts = [15000, 25000, 30000, 50000, 20000];
 
   setInterval(() => {
     const popup = document.getElementById("liveWithdrawalPopup");
@@ -896,7 +890,7 @@ document.addEventListener("DOMContentLoaded", function () {
 let userNotifications = [
   {
     id: 1,
-    title: "Welcome to 9jaCash Ghana!",
+    title: "Welcome to 9jaCash!",
     desc: "Start mining daily to earn rewards and build up your balance.",
     time: "2 mins ago",
     read: false
