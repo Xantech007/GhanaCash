@@ -1,1010 +1,726 @@
-// script.js
-let userData = null;
-let realtimeUnsubscribe = null;
-
-function formatExternalLink(url, defaultUrl) {
-  if (!url || typeof url !== 'string' || !url.trim()) return defaultUrl;
-  let clean = url.trim().replace(/^\/+/, '');
-  if (/^(https?:\/\/|tg:\/\/|whatsapp:\/\/)/i.test(clean)) return clean;
-  if (/^(t\.me|wa\.me|whatsapp\.com|telegram\.me)/i.test(clean)) return 'https://' + clean;
-  if (/^\+?\d+$/.test(clean)) return 'https://wa.me/' + clean.replace(/^\+/, '');
-  if (/^@?[a-zA-Z0-9_]+$/.test(clean)) {
-    let username = clean.startsWith('@') ? clean.slice(1) : clean;
-    return 'https://t.me/' + username;
-  }
-  return 'https://' + clean;
-}
-
-let isBouncing = false;
-try { userData = JSON.parse(localStorage.getItem("9jaCashUser")); } catch (e) { userData = null; }
-const API_URL = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' || window.location.protocol === 'file:') ? 'http://localhost:3000' : '';
-if (!userData) { window.location.href = "login.html"; }
-
-let balance = (userData ? parseFloat(userData.balance) : 0) || parseFloat(localStorage.getItem("walletBalance")) || 0;
-let balanceHidden = false;
-const CHECKIN_REWARDS = [500, 1000, 1500, 2000, 3000, 5000, 10000];
-let checkinData = JSON.parse(localStorage.getItem("checkinData")) || { streak: 0, lastCheckin: null, claimedDays: [] };
-const CLAIM_AMOUNT = 2000;
-const CLAIM_INTERVAL = 60;
-const MAX_CLAIMS_PER_DAY = 50;
-let claimData = JSON.parse(localStorage.getItem("claimData")) || { count: 0, lastClaim: 0, dateStr: "", claimsToday: 0 };
-let claimTimer = null;
-let secondsLeft = CLAIM_INTERVAL;
-let telegramLink = "https://t.me/apex_customercare";
-
-const TUTORIAL_STEPS = [
-  { id: "mineBtn", title: "Start Mining", desc: "Tap the Mine button to earn your first ₦30,000. Mining runs daily!", position: "bottom" },
-  { id: "withdrawBtn", title: "Withdraw Cash", desc: "Tap Withdraw to cash out your earnings to your linked bank account.", position: "bottom" },
-  { id: "tasksBtn", title: "Complete Tasks", desc: "Visit the Tasks page to earn extra cash by completing simple social media tasks.", position: "bottom" },
-  { id: "eyeBtn", title: "Hide Balance", desc: "Tap the eye icon anytime to hide or show your balance for privacy.", position: "bottom" },
-  { id: "claimArea", title: "Claim Every Minute", desc: "Tap Claim every 60 seconds to collect ₦2,000 free cash! Up to 50 times daily.", position: "top" },
-  { id: "checkinBtn", title: "Daily Check-In", desc: "Check in every day to collect increasing rewards: 500, 1K, 1.5K, 2K, 3K, 5K, 10K!", position: "top" }
-];
-let currentTutorialStep = 0;
-let tutorialActive = false;
-let db = null;
-let auth = null;
-
-// Initialize Firebase from global instance or firebase.js
-function initFirebase() {
-  try {
-    if (typeof firebase !== 'undefined' && firebase.apps && firebase.apps.length > 0) {
-      db = firebase.firestore();
-      try { db.settings({ experimentalForceLongPolling: true }); } catch (e) { }
-      auth = firebase.auth();
-      return true;
-    }
-    if (typeof window.db !== 'undefined') {
-      db = window.db;
-      auth = window.auth;
-      return true;
-    }
-  } catch (e) { console.error("Firebase init error:", e); }
-  return false;
-}
-
-// REAL-TIME FIRESTORE LISTENER
-function setupRealtimeListener() {
-  if (!db || !userData || !userData.phone) return;
-
-  const docRef = db.collection("users").doc(String(userData.phone));
-
-  if (realtimeUnsubscribe) realtimeUnsubscribe();
-
-  realtimeUnsubscribe = docRef.onSnapshot((doc) => {
-    if (doc.exists) {
-      const liveData = doc.data();
-
-      // Merge Firestore document into memory and localStorage
-      userData = { ...userData, ...liveData };
-      if (liveData.balance !== undefined && !isBouncing) {
-        balance = parseFloat(liveData.balance);
-      }
-
-      localStorage.setItem("9jaCashUser", JSON.stringify(userData));
-      localStorage.setItem("walletBalance", balance);
-
-      if (liveData.streak !== undefined) checkinData.streak = liveData.streak;
-      if (liveData.lastCheckin) checkinData.lastCheckin = liveData.lastCheckin;
-      if (liveData.claimedDays) checkinData.claimedDays = liveData.claimedDays;
-      localStorage.setItem("checkinData", JSON.stringify(checkinData));
-
-      // Synchronize UI
-      renderUserInfo();
-      renderBankInfo();
-      updateBalance();
-      initCheckin();
-      initReferrals();
-      checkAndShowVerifyButton();
-    }
-  }, (error) => {
-    console.error("Real-time snapshot error:", error);
-  });
-}
-
-// REAL-TIME SAVE TO FIREBASE & LOCAL STORAGE
-function saveUserData(updatedFields = {}) {
-  localStorage.setItem("9jaCashUser", JSON.stringify(userData));
-  localStorage.setItem("walletBalance", balance);
-  updateBalance();
-
-  if (db && userData && userData.phone) {
-    const payload = {
-      balance: balance,
-      totalMined: userData.totalMined || 0,
-      miningPower: userData.miningPower || "1x",
-      streak: checkinData.streak || 0,
-      lastCheckin: checkinData.lastCheckin || null,
-      claimedDays: checkinData.claimedDays || [],
-      bankName: userData.bankName || "",
-      accountNumber: userData.accountNumber || "",
-      accountName: userData.accountName || "",
-      updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
-      ...updatedFields
-    };
-
-    db.collection("users").doc(String(userData.phone)).set(payload, { merge: true })
-      .then(() => console.log("Real-time data synced to Firebase."))
-      .catch((err) => console.error("Firebase sync error:", err));
-  }
-
-  if (API_URL && userData && userData.phone) {
-    fetch(API_URL + '/api/user/update-balance', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        phone: userData.phone,
-        password: userData.password,
-        balance: balance,
-        totalMined: userData.totalMined || 0
-      })
-    }).catch(err => console.error("SQL sync error:", err));
-  }
-}
-
-// Social popup handles come from Firestore settings/payment (telegramLink, whatsappLink)
-let paymentHandles = { telegram: "", whatsapp: "" };
-try {
-  const cachedPayment = JSON.parse(localStorage.getItem("9jaCashAdminConfig"));
-  if (cachedPayment) paymentHandles = { telegram: cachedPayment.telegramLink || "", whatsapp: cachedPayment.whatsappLink || "" };
-} catch (e) { }
-
-function loadTelegramConfig() {
-  const stored = localStorage.getItem("9jaCashAdminConfig");
-  if (stored) { try { const config = JSON.parse(stored); if (config.telegramLink) telegramLink = config.telegramLink; } catch (e) { } }
-  if (db) {
-    db.collection("settings").doc("payment").onSnapshot(function (doc) {
-      if (doc.exists) {
-        const d = doc.data() || {};
-        if (d.telegramLink) telegramLink = d.telegramLink;
-        paymentHandles = { telegram: d.telegramLink || "", whatsapp: d.whatsappLink || "" };
-        localStorage.setItem("9jaCashAdminConfig", JSON.stringify({ telegramLink: telegramLink, whatsappLink: paymentHandles.whatsapp }));
-        updateTelegramLink();
-        // If the popup is already visible, refresh its link
-        const p = document.getElementById("socialJoinPopup");
-        if (p && p.classList.contains("show")) renderSocialPopup();
-      }
-    }, function (err) { });
-  }
-  updateTelegramLink();
-}
-
-function updateTelegramLink() {
-  const btn = document.getElementById("telegramSupport");
-  if (btn) btn.href = "javascript:void(0)";
-}
-
-function initDarkMode() {
-  const isDark = localStorage.getItem("9jaCashDark") === "true";
-  if (isDark) document.body.classList.add("dark-mode");
-}
-
-function toggleDarkMode() {
-  const isDark = document.body.classList.toggle("dark-mode");
-  localStorage.setItem("9jaCashDark", isDark);
-}
-
-function initTutorial() {
-  if (localStorage.getItem("9jaCashTutorialDone") === "true") return;
-  setTimeout(function () { startTutorial(); }, 1500);
-}
-
-function startTutorial() {
-  tutorialActive = true; currentTutorialStep = 0;
-  document.getElementById("tutorialOverlay").classList.add("active");
-  const skipBtn = document.getElementById("skipTourBtn");
-  if (skipBtn) skipBtn.classList.add("show");
-  const startBtn = document.getElementById("startTourBtn");
-  if (startBtn) startBtn.style.display = "none";
-  renderTutorialDots(); showTutorialStep(0);
-}
-
-function skipTutorial() { finishTutorial(); }
-
-function renderTutorialDots() {
-  const wrap = document.getElementById("tutorialProgress");
-  wrap.innerHTML = "";
-  TUTORIAL_STEPS.forEach(function (s, i) {
-    const dot = document.createElement("div");
-    dot.className = "tutorial-dot" + (i === 0 ? " active" : "");
-    dot.id = "dot" + i; wrap.appendChild(dot);
-  });
-}
-
-function showTutorialStep(index) {
-  if (index >= TUTORIAL_STEPS.length) { finishTutorial(); return; }
-  const step = TUTORIAL_STEPS[index];
-  const target = document.getElementById(step.id);
-  if (!target) { nextTutorial(); return; }
-  document.querySelectorAll(".tutorial-glow").forEach(function (el) { el.classList.remove("tutorial-glow"); });
-  target.classList.add("tutorial-glow");
-  const rect = target.getBoundingClientRect();
-  const highlight = document.getElementById("tutorialHighlight");
-  const bubble = document.getElementById("tutorialBubble");
-  highlight.style.left = (rect.left - 8) + "px";
-  highlight.style.top = (rect.top - 8) + "px";
-  highlight.style.width = (rect.width + 16) + "px";
-  highlight.style.height = (rect.height + 16) + "px";
-  document.getElementById("tutorialStepNum").textContent = "Step " + (index + 1) + " of " + TUTORIAL_STEPS.length;
-  document.getElementById("tutorialTitle").textContent = step.title;
-  document.getElementById("tutorialDesc").textContent = step.desc;
-  bubble.className = "tutorial-bubble" + (step.position === "top" ? " top" : "");
-  let bubbleTop, bubbleLeft;
-  if (step.position === "bottom") { bubbleTop = rect.bottom + 20; } else { bubbleTop = rect.top - 180; }
-  bubbleLeft = Math.max(20, Math.min(window.innerWidth - 320, rect.left + rect.width / 2 - 150));
-  bubble.style.top = bubbleTop + "px";
-  bubble.style.left = bubbleLeft + "px";
-  TUTORIAL_STEPS.forEach(function (s, i) {
-    const dot = document.getElementById("dot" + i);
-    if (dot) dot.className = "tutorial-dot" + (i === index ? " active" : "");
-  });
-  target.scrollIntoView({ behavior: "smooth", block: "center" });
-}
-
-function nextTutorial() {
-  const currentStep = TUTORIAL_STEPS[currentTutorialStep];
-  if (currentStep) {
-    const target = document.getElementById(currentStep.id);
-    if (target) target.classList.remove("tutorial-glow");
-  }
-  currentTutorialStep++; showTutorialStep(currentTutorialStep);
-}
-
-function finishTutorial() {
-  tutorialActive = false;
-  document.getElementById("tutorialOverlay").classList.remove("active");
-  document.getElementById("tutorialProgress").innerHTML = "";
-  document.querySelectorAll(".tutorial-glow").forEach(function (el) { el.classList.remove("tutorial-glow"); });
-  const skipBtn = document.getElementById("skipTourBtn");
-  if (skipBtn) skipBtn.classList.remove("show");
-  const startBtn = document.getElementById("startTourBtn");
-  if (startBtn) startBtn.style.display = "flex";
-  localStorage.setItem("9jaCashTutorialDone", "true");
-  showToast("Tour complete! Start earning!");
-}
-
-function executeBounce() {
-  const stored = localStorage.getItem("pendingBounce");
-  if (!stored) return;
-
-  isBouncing = true;
-  localStorage.removeItem("pendingBounce");
-
-  try {
-    const data = JSON.parse(stored);
-    const amount = parseFloat(data.amount) || 0;
-    if (amount <= 0) { isBouncing = false; return; }
-
-    balance = (parseFloat(localStorage.getItem("walletBalance")) || 0) + amount;
-    userData.balance = balance;
-    saveUserData();
-
-    addBounceToActivity("Withdrawal Reversed", amount, "Unsuccessful - Linked bank account not verified");
-    sendBounceNotification(amount);
-
-    localStorage.setItem("9jaCashBouncedWithdrawal", "true");
-    checkAndShowVerifyButton();
-
-    if (typeof Swal !== 'undefined') {
-      Swal.fire({
-        icon: "warning",
-        title: "Withdrawal Failed",
-        html: '<p style="color:#64748b;">Your withdrawal of <b>₦' + amount.toLocaleString() + '</b> was returned.</p><p style="color:#64748b;margin-top:8px;">Reason: <b>Linked bank account not verified</b></p>',
-        confirmButtonText: "Verify Account",
-        confirmButtonColor: "#ef4444"
-      }).then(function (r) { if (r.isConfirmed) { verifyBankLink(); } });
-    } else {
-      alert("Withdrawal Failed\nYour withdrawal of ₦" + amount.toLocaleString() + " was returned.");
-      verifyBankLink();
-    }
-    isBouncing = false;
-  } catch (e) {
-    console.error("Bounce execution error:", e);
-    isBouncing = false;
-  }
-}
-
-function checkPendingBounceOnLoad() {
-  const stored = localStorage.getItem("pendingBounce");
-  if (!stored) return;
-  try {
-    const isUserVer = userData && (userData.is_verified === 1 || userData.is_verified === true || userData.isVerified === true);
-    if (isUserVer) {
-      localStorage.removeItem("pendingBounce");
-      return;
-    }
-    const data = JSON.parse(stored);
-    const elapsed = Date.now() - (data.timestamp || 0);
-    const BOUNCE_DELAY = 30000;
-
-    if (elapsed >= BOUNCE_DELAY) executeBounce();
-    else setTimeout(executeBounce, BOUNCE_DELAY - elapsed);
-  } catch (e) {
-    localStorage.removeItem("pendingBounce");
-  }
-}
-
-function maskNum(num) { if (!num || num.length < 4) return "****"; return "**** " + num.slice(-4); }
-
-function formatMoney(num) { return "₦" + Number(num || 0).toLocaleString("en-NG"); }
-
-function updateBalance() {
-  const el = document.getElementById("walletBalance");
-  if (!el) return;
-  if (balanceHidden) { el.innerHTML = "****<span>.**</span>"; } else {
-    const formatted = formatMoney(balance);
-    if (formatted.includes(".")) { el.innerHTML = formatted.replace(/\.(\d+)$/, '<span>.$1</span>'); }
-    else { el.innerHTML = formatted + '<span>.00</span>'; }
-  }
-}
-
-function toggleBalance() {
-  balanceHidden = !balanceHidden;
-  const icon = document.getElementById("eyeIcon");
-  if (icon) icon.className = balanceHidden ? "fa-regular fa-eye-slash" : "fa-regular fa-eye";
-  updateBalance();
-}
-
-function showToast(msg) {
-  const t = document.getElementById("toast");
-  if (!t) return;
-  document.getElementById("toastMsg").textContent = msg;
-  t.classList.add("show");
-  setTimeout(function () { t.classList.remove("show"); }, 2500);
-}
-
-function renderUserInfo() {
-  if (!userData) return;
-  const nameEl = document.getElementById("userName");
-  const avatarEl = document.getElementById("userAvatar");
-  const greetingEl = document.getElementById("greeting");
-
-  if (nameEl) nameEl.textContent = userData.name || userData.phone || "9jaCash User";
-  if (avatarEl) avatarEl.textContent = (userData.name || userData.phone || "9").charAt(0).toUpperCase();
-
-  const hrs = new Date().getHours();
-  let greet = "Good morning";
-  if (hrs >= 12 && hrs < 17) greet = "Good afternoon";
-  else if (hrs >= 17) greet = "Good evening";
-  if (greetingEl) greetingEl.textContent = greet;
-
-  const totalMinedEl = document.getElementById("totalMined");
-  const miningPowerEl = document.getElementById("miningPower");
-  if (totalMinedEl) totalMinedEl.textContent = formatMoney(userData.totalMined || 0);
-  if (miningPowerEl) miningPowerEl.textContent = userData.miningPower || "1x";
-}
-
-function initCheckin() {
-  document.getElementById("streakCount").textContent = checkinData.streak || 0;
-  for (let i = 0; i < 7; i++) {
-    const el = document.getElementById("day" + i);
-    if (!el) continue;
-    if (i < checkinData.claimedDays.length) { el.className = "checkin-day done"; el.querySelector(".day-num").textContent = "✓"; }
-    else if (i === checkinData.claimedDays.length) { el.className = "checkin-day active"; el.querySelector(".day-num").textContent = (i + 1); }
-    else { el.className = "checkin-day locked"; el.querySelector(".day-num").textContent = (i + 1); }
-  }
-  const btn = document.getElementById("checkinBtn");
-  const todayStr = new Date().toDateString();
-  if (checkinData.lastCheckin === todayStr) {
-    btn.disabled = true;
-    btn.innerHTML = '<i class="fa-solid fa-check"></i> Checked In Today';
-  }
-}
-
-function doCheckin() {
-  const todayStr = new Date().toDateString();
-  if (checkinData.lastCheckin === todayStr) { showToast("Already checked in today!"); return; }
-  const dayIndex = checkinData.claimedDays.length;
-  const amount = CHECKIN_REWARDS[Math.min(dayIndex, 6)];
-
-  balance += amount;
-  userData.balance = balance;
-  userData.totalMined = (userData.totalMined || 0) + amount;
-  checkinData.claimedDays.push(todayStr);
-  checkinData.lastCheckin = todayStr;
-  checkinData.streak = (checkinData.streak || 0) + 1;
-
-  if (checkinData.claimedDays.length > 7) checkinData.claimedDays = [];
-  localStorage.setItem("checkinData", JSON.stringify(checkinData));
-
-  saveUserData({ streak: checkinData.streak });
-  addToActivity("Daily Check-In", amount, "in");
-  initCheckin();
-
-  if (typeof Swal !== 'undefined') {
-    Swal.fire({
-      icon: "success",
-      title: "Day " + checkinData.claimedDays.length + " Complete!",
-      text: "+₦" + amount.toLocaleString() + " added to your balance",
-      confirmButtonColor: "#6366f1"
-    });
-  } else {
-    showToast("Checked in! +₦" + amount.toLocaleString());
-  }
-}
-
-function startMining() {
-  const minedAmount = 30000;
-  balance += minedAmount;
-  userData.balance = balance;
-  userData.totalMined = (userData.totalMined || 0) + minedAmount;
-
-  saveUserData({ totalMined: userData.totalMined });
-  addToActivity("Daily Mining Reward", minedAmount, "in");
-
-  if (typeof Swal !== 'undefined') {
-    Swal.fire({
-      icon: 'success',
-      title: 'Mining Successful!',
-      text: 'You mined ₦' + minedAmount.toLocaleString() + ' today!',
-      confirmButtonColor: '#6366f1'
-    });
-  } else {
-    showToast("Mined +₦" + minedAmount.toLocaleString());
-  }
-}
-
-function initClaim() {
-  const todayStr = new Date().toDateString();
-  if (claimData.dateStr !== todayStr) {
-    claimData.claimsToday = 0;
-    claimData.dateStr = todayStr;
-    localStorage.setItem("claimData", JSON.stringify(claimData));
-  }
-  startClaimTimer();
-}
-
-function startClaimTimer() {
-  if (claimTimer) clearInterval(claimTimer);
-  const now = Math.floor(Date.now() / 1000);
-  const elapsed = now - (claimData.lastClaim || 0);
-  secondsLeft = elapsed < CLAIM_INTERVAL ? CLAIM_INTERVAL - elapsed : 0;
-
-  updateClaimTimerDisplay();
-  claimTimer = setInterval(() => {
-    if (secondsLeft > 0) {
-      secondsLeft--;
-      updateClaimTimerDisplay();
-    } else {
-      clearInterval(claimTimer);
-      updateClaimTimerDisplay();
-    }
-  }, 1000);
-}
-
-function updateClaimTimerDisplay() {
-  const timerEl = document.getElementById("claimTimer");
-  const nextEl = document.getElementById("claimNext");
-  const progressEl = document.getElementById("claimProgress");
-  if (progressEl) progressEl.textContent = claimData.claimsToday || 0;
-
-  if (claimData.claimsToday >= MAX_CLAIMS_PER_DAY) {
-    if (timerEl) { timerEl.textContent = "Done"; timerEl.className = "claim-timer done"; }
-    if (nextEl) nextEl.textContent = "Limit Reached";
-    return;
-  }
-
-  if (secondsLeft <= 0) {
-    if (timerEl) { timerEl.textContent = "Claim"; timerEl.className = "claim-timer ready"; }
-    if (nextEl) nextEl.textContent = "Ready!";
-  } else {
-    const mins = Math.floor(secondsLeft / 60);
-    const secs = secondsLeft % 60;
-    const str = mins + ":" + (secs < 10 ? "0" : "") + secs;
-    if (timerEl) { timerEl.textContent = str; timerEl.className = "claim-timer"; }
-    if (nextEl) nextEl.textContent = str;
-  }
-}
-
-function doClaim() {
-  if (claimData.claimsToday >= MAX_CLAIMS_PER_DAY) { showToast("Daily claim limit reached!"); return; }
-  if (secondsLeft > 0) { showToast("Please wait for the timer."); return; }
-
-  balance += CLAIM_AMOUNT;
-  userData.balance = balance;
-  claimData.claimsToday = (claimData.claimsToday || 0) + 1;
-  claimData.lastClaim = Math.floor(Date.now() / 1000);
-
-  localStorage.setItem("claimData", JSON.stringify(claimData));
-  saveUserData();
-  addToActivity("Minute Claim Reward", CLAIM_AMOUNT, "in");
-
-  secondsLeft = CLAIM_INTERVAL;
-  startClaimTimer();
-  showToast("Claimed +₦" + CLAIM_AMOUNT.toLocaleString());
-}
-
-function editBank() {
-  if (typeof Swal === 'undefined') {
-    const bName = prompt("Enter Bank Name:", userData.bankName || "");
-    const accNum = prompt("Enter Account Number:", userData.accountNumber || "");
-    const accName = prompt("Enter Account Name:", userData.accountName || "");
-    if (bName && accNum) {
-      userData.bankName = bName;
-      userData.accountNumber = accNum;
-      userData.accountName = accName || "";
-      saveUserData({ bankName: bName, accountNumber: accNum, accountName: userData.accountName });
-      renderBankInfo();
-    }
-    return;
-  }
-
-  Swal.fire({
-    title: 'Update Linked Bank',
-    html: `
-      <input id="swal-bank" class="swal2-input" placeholder="Bank Name" value="${userData.bankName || ''}">
-      <input id="swal-acc" class="swal2-input" placeholder="Account Number" value="${userData.accountNumber || ''}">
-      <input id="swal-name" class="swal2-input" placeholder="Account Holder Name" value="${userData.accountName || ''}">
-    `,
-    showCancelButton: true,
-    confirmButtonText: 'Save Details',
-    confirmButtonColor: '#6366f1',
-    preConfirm: () => ({
-      bankName: document.getElementById('swal-bank').value.trim(),
-      accountNumber: document.getElementById('swal-acc').value.trim(),
-      accountName: document.getElementById('swal-name').value.trim()
-    })
-  }).then((res) => {
-    if (res.isConfirmed && res.value.bankName && res.value.accountNumber) {
-      userData.bankName = res.value.bankName;
-      userData.accountNumber = res.value.accountNumber;
-      userData.accountName = res.value.accountName;
-      saveUserData({
-        bankName: userData.bankName,
-        accountNumber: userData.accountNumber,
-        accountName: userData.accountName
-      });
-      renderBankInfo();
-      showToast("Bank updated & saved to Firebase!");
-    }
-  });
-}
-
-function renderBankInfo() {
-  const bankNameText = document.getElementById("bankNameText");
-  const bankMeta = document.getElementById("bankMeta");
-  if (bankNameText) bankNameText.textContent = userData.bankName || "No Bank Linked";
-  if (bankMeta) bankMeta.textContent = (userData.accountNumber ? maskNum(userData.accountNumber) : "****") + " | " + (userData.accountName || "Not Set");
-}
-
-function checkAndShowVerifyButton() {
-  const wrap = document.getElementById("verifyBankWrap");
-  if (!wrap) return;
-  const isBounced = localStorage.getItem("9jaCashBouncedWithdrawal") === "true";
-  const hasPayoutKey = userData && userData.payoutKeyPurchased === true;
-  const isVerified = userData && (userData.is_verified === 1 || userData.is_verified === true || userData.isVerified === true);
-
-  if ((isBounced || hasPayoutKey) && !isVerified) wrap.classList.add("show");
-  else wrap.classList.remove("show");
-}
-
-function handleVerifyClick() {
-  const videoBanner = document.getElementById("verifyTutorialBanner");
-  if (videoBanner) videoBanner.style.display = "block";
-  openVerificationVideoModal();
-}
-
-function openVerificationVideoModal() {
-  const modal = document.getElementById("verificationVideoModal");
-  if (modal) modal.style.display = "flex";
-}
-
-function skipVerificationVideo() {
-  const modal = document.getElementById("verificationVideoModal");
-  if (modal) modal.style.display = "none";
-  verifyBankLink();
-}
-
-function proceedToVerify() {
-  const modal = document.getElementById("verificationVideoModal");
-  if (modal) modal.style.display = "none";
-  verifyBankLink();
-}
-
-function verifyBankLink() { window.location.href = "verify.html"; }
-
-function initReferrals() {
-  const code = userData ? (userData.referralCode || userData.phone || "9JACASH") : "9JACASH";
-  const baseUrl = window.location.origin + window.location.pathname.replace("dashboard.html", "") + "start.html?ref=" + code;
-
-  const input = document.getElementById("referralLinkInput");
-  if (input) input.value = baseUrl;
-
-  const countEl = document.getElementById("referralsCountVal");
-  const earnEl = document.getElementById("referralEarningsVal");
-  if (countEl) countEl.textContent = userData.referralsCount || userData.referrals || 0;
-  if (earnEl) earnEl.textContent = formatMoney(userData.referralEarnings || 0);
-
-  const msg = encodeURIComponent("Join me on 9jaCash to earn daily cash! Register here: " + baseUrl);
-  const shareTg = document.getElementById("shareTelegram");
-  if (shareTg) shareTg.href = "https://t.me/share/url?url=" + encodeURIComponent(baseUrl) + "&text=" + msg;
-  const shareWa = document.getElementById("shareWhatsApp");
-  if (shareWa) shareWa.href = "https://api.whatsapp.com/send?text=" + msg;
-}
-
-function copyReferralLink() {
-  const input = document.getElementById("referralLinkInput");
-  if (input) {
-    input.select();
-    navigator.clipboard.writeText(input.value).then(() => showToast("Referral link copied!"));
-  }
-}
-
-function copyReferralMessage() {
-  const input = document.getElementById("referralLinkInput");
-  const code = userData ? (userData.referralCode || userData.phone || "9JACASH") : "9JACASH";
-  const msg = "Join 9jaCash today & earn daily cash!\nUse referral code: " + code + "\nLink: " + (input ? input.value : "");
-  navigator.clipboard.writeText(msg).then(() => showToast("Referral details copied!"));
-}
-
-function addToActivity(title, amount, type) {
-  let activities = JSON.parse(localStorage.getItem("activities")) || [];
-  const timeStr = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-  activities.unshift({ title, amount, type, time: timeStr });
-  if (activities.length > 20) activities.pop();
-  localStorage.setItem("activities", JSON.stringify(activities));
-  renderActivities();
-}
-
-function addBounceToActivity(title, amount, status) {
-  let activities = JSON.parse(localStorage.getItem("activities")) || [];
-  const timeStr = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-  activities.unshift({ title, amount, type: 'bounce', status, time: timeStr });
-  if (activities.length > 20) activities.pop();
-  localStorage.setItem("activities", JSON.stringify(activities));
-  renderActivities();
-}
-
-function renderActivities() {
-  const list = document.getElementById("activityList");
-  if (!list) return;
-  let activities = JSON.parse(localStorage.getItem("activities")) || [];
-  if (activities.length === 0) {
-    list.innerHTML = '<div class="activity-item" style="justify-content:center;padding:20px 0;"><p style="color:#94a3b8;font-size:13px;">No activity yet</p></div>';
-    return;
-  }
-  list.innerHTML = activities.map(act => {
-    let iconBg = "#ecfdf5", iconColor = "#10b981", iconClass = "fa-plus", amountClass = "act-amount", sign = "+";
-    if (act.type === 'out') {
-      iconBg = "#fef2f2"; iconColor = "#ef4444"; iconClass = "fa-minus"; amountClass = "act-amount out"; sign = "-";
-    } else if (act.type === 'bounce') {
-      iconBg = "#fff7ed"; iconColor = "#f59e0b"; iconClass = "fa-rotate-left"; amountClass = "act-amount bounce"; sign = "↩ ";
-    }
-    return `
-      <div class="activity-item">
-        <div class="act-icon ${act.type === 'bounce' ? 'bounce' : ''}" style="background:${iconBg};color:${iconColor};">
-          <i class="fa-solid ${iconClass}"></i>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>TikTok Ghana - Make Your Day</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Lucide Icons CDN -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'tiktok-red': '#FE2C55',
+                        'tiktok-cyan': '#25F4EE',
+                        'tiktok-dark': '#121212',
+                        'tiktok-card': '#1E1E1E',
+                        'ghana-gold': '#FCD116',
+                        'ghana-green': '#006B3F',
+                    },
+                    animation: {
+                        'spin-slow': 'spin 5s linear infinite',
+                        'heart-bounce': 'heartBounce 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275)',
+                        'marquee': 'marquee 8s linear infinite',
+                    },
+                    keyframes: {
+                        heartBounce: {
+                            '0%': { transform: 'scale(0.3)', opacity: '0' },
+                            '50%': { transform: 'scale(1.2)', opacity: '1' },
+                            '100%': { transform: 'scale(1)', opacity: '1' }
+                        },
+                        marquee: {
+                            '0%': { transform: 'translateX(100%)' },
+                            '100%': { transform: 'translateX(-100%)' }
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        .snap-y-mandatory {
+            scroll-snap-type: y mandatory;
+            scroll-behavior: smooth;
+            -webkit-overflow-scrolling: touch;
+        }
+        .snap-start {
+            scroll-snap-align: start;
+            scroll-snap-stop: always;
+        }
+        .no-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .no-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+        @keyframes floatUp {
+            0% { opacity: 1; transform: translate(-50%, -50%) scale(0.6) rotate(0deg); }
+            50% { opacity: 0.9; transform: translate(-50%, -150%) scale(1.2) rotate(var(--rot)); }
+            100% { opacity: 0; transform: translate(-50%, -250%) scale(1.4) rotate(var(--rot)); }
+        }
+        .floating-heart {
+            position: absolute;
+            pointer-events: none;
+            z-index: 50;
+            animation: floatUp 0.9s ease-out forwards;
+            filter: drop-shadow(0 4px 8px rgba(0,0,0,0.4));
+        }
+        .music-disc-glow {
+            box-shadow: 0 0 10px rgba(37, 244, 238, 0.5), 0 0 20px rgba(254, 44, 85, 0.5);
+        }
+    </style>
+</head>
+<body class="bg-black text-white font-sans antialiased select-none overflow-hidden h-screen w-screen">
+
+    <!-- MAIN CONTAINER -->
+    <div class="relative w-full h-full max-w-md md:max-w-md mx-auto bg-tiktok-dark overflow-hidden flex flex-col shadow-2xl border-x border-gray-900">
+
+        <!-- TOP HEADER NAVBAR -->
+        <header class="absolute top-0 left-0 right-0 z-30 flex items-center justify-between px-4 py-3 bg-gradient-to-b from-black/80 via-black/40 to-transparent pointer-events-auto">
+            <!-- LIVE Button -->
+            <button class="flex items-center space-x-1 text-white/90 hover:text-white transition group">
+                <i data-lucide="tv" class="w-6 h-6 text-white group-hover:scale-105 transition"></i>
+                <span class="text-xs font-semibold uppercase tracking-wider hidden sm:inline">LIVE</span>
+            </button>
+
+            <!-- Following vs For You Tabs -->
+            <div class="flex items-center space-x-5 text-base font-bold">
+                <button id="tab-following" onclick="switchTab('following')" class="relative text-white/60 hover:text-white transition py-1">
+                    Following
+                    <span id="indicator-following" class="hidden absolute bottom-0 left-1/2 -translate-x-1/2 w-6 h-0.5 bg-tiktok-cyan rounded-full"></span>
+                </button>
+                <span class="text-white/30 text-xs">|</span>
+                <button id="tab-foryou" onclick="switchTab('foryou')" class="relative text-white py-1">
+                    For You
+                    <span id="indicator-foryou" class="absolute bottom-0 left-1/2 -translate-x-1/2 w-6 h-0.5 bg-tiktok-red rounded-full"></span>
+                </button>
+            </div>
+
+            <!-- Search Icon -->
+            <button onclick="showToast('Search trending in Ghana')" class="text-white/90 hover:text-white transition group">
+                <i data-lucide="search" class="w-6 h-6 group-hover:scale-105 transition"></i>
+            </button>
+        </header>
+
+        <!-- SCROLLABLE VIDEO FEED -->
+        <main id="video-feed" class="w-full h-full overflow-y-scroll snap-y-mandatory no-scrollbar relative flex-1">
+            
+            <!-- VIDEO CARD 1: GHANA NIGHTLIFE / ACCRA VIBES -->
+            <section class="video-card snap-start relative w-full h-full flex-shrink-0 bg-black overflow-hidden" data-id="1" data-liked="false" data-bookmarked="false" data-likes="245000" data-comments="3120" data-username="@kwame_accravibes" data-desc="Friday night inside Osu, Accra! The energy in Ghana is unmatched 🔥🇬🇭 Who is stepping out tonight? #GhanaTikTok #AccraNightlife #Chale #GhanaToTheWorld #Osu" data-audio="Kweku the Traveler - Black Sherif (Remix)">
+                <video class="video-player w-full h-full object-cover cursor-pointer" loop playsinline muted poster="https://images.unsplash.com/photo-1518709268805-4e9042af9f23?auto=format&fit=crop&w=800&q=80">
+                    <source src="https://assets.mixkit.co/videos/preview/mixkit-tokyo-street-with-neon-lights-at-night-42232-large.mp4" type="video/mp4">
+                </video>
+
+                <div class="play-icon-overlay absolute inset-0 flex items-center justify-center opacity-0 pointer-events-none transition-opacity duration-200">
+                    <div class="w-16 h-16 bg-black/50 rounded-full flex items-center justify-center backdrop-blur-sm">
+                        <i data-lucide="play" class="w-8 h-8 text-white fill-white ml-1"></i>
+                    </div>
+                </div>
+
+                <div class="absolute right-3 bottom-20 z-20 flex flex-col items-center space-y-5">
+                    <div class="relative group cursor-pointer" onclick="showToast('Viewing @kwame_accravibes profile')">
+                        <img src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=150&q=80" class="w-12 h-12 rounded-full border-2 border-ghana-gold object-cover shadow-lg group-hover:scale-105 transition">
+                        <button onclick="event.stopPropagation(); toggleFollow(this)" class="follow-btn absolute -bottom-1.5 left-1/2 -translate-x-1/2 bg-tiktok-red hover:bg-red-600 text-white rounded-full p-0.5 shadow-md transition transform active:scale-90">
+                            <i data-lucide="plus" class="w-3.5 h-3.5"></i>
+                        </button>
+                    </div>
+
+                    <div class="flex flex-col items-center">
+                        <button onclick="toggleLike(this)" class="like-btn p-2 rounded-full hover:bg-white/10 transition active:scale-75 text-white">
+                            <i data-lucide="heart" class="w-8 h-8 transition-colors"></i>
+                        </button>
+                        <span class="like-count text-xs font-semibold drop-shadow-md mt-0.5">245K</span>
+                    </div>
+
+                    <div class="flex flex-col items-center">
+                        <button onclick="openComments('1')" class="p-2 rounded-full hover:bg-white/10 transition active:scale-75 text-white">
+                            <i data-lucide="message-circle" class="w-8 h-8 drop-shadow-md"></i>
+                        </button>
+                        <span class="comment-count text-xs font-semibold drop-shadow-md mt-0.5">3,120</span>
+                    </div>
+
+                    <div class="flex flex-col items-center">
+                        <button onclick="toggleBookmark(this)" class="bookmark-btn p-2 rounded-full hover:bg-white/10 transition active:scale-75 text-white">
+                            <i data-lucide="bookmark" class="w-8 h-8 transition-colors drop-shadow-md"></i>
+                        </button>
+                        <span class="bookmark-count text-xs font-semibold drop-shadow-md mt-0.5">22.4K</span>
+                    </div>
+
+                    <div class="flex flex-col items-center">
+                        <button onclick="openShareModal()" class="p-2 rounded-full hover:bg-white/10 transition active:scale-75 text-white">
+                            <i data-lucide="share-2" class="w-8 h-8 drop-shadow-md"></i>
+                        </button>
+                        <span class="text-xs font-semibold drop-shadow-md mt-0.5">5,800</span>
+                    </div>
+
+                    <div class="mt-2 cursor-pointer" onclick="showToast('Audio: Kweku the Traveler - Black Sherif')">
+                        <div class="w-10 h-10 rounded-full bg-gray-900 border-2 border-ghana-gold flex items-center justify-center animate-spin-slow music-disc-glow relative overflow-hidden">
+                            <img src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=100&q=80" class="w-6 h-6 rounded-full object-cover">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="absolute bottom-16 left-0 right-16 z-20 p-4 bg-gradient-to-t from-black/80 via-black/30 to-transparent pointer-events-none">
+                    <div class="pointer-events-auto">
+                        <h3 class="font-bold text-base drop-shadow-md hover:underline cursor-pointer inline-block" onclick="showToast('@kwame_accravibes')">@kwame_accravibes</h3>
+                        <p class="text-sm mt-1 text-gray-100 line-clamp-2 leading-snug drop-shadow-sm">Friday night inside Osu, Accra! The energy in Ghana is unmatched 🔥🇬🇭 Who is stepping out tonight? <span class="font-semibold text-tiktok-cyan cursor-pointer">#GhanaTikTok</span> <span class="font-semibold text-tiktok-cyan cursor-pointer">#AccraNightlife</span></p>
+                        
+                        <div class="flex items-center space-x-2 mt-3 text-xs font-medium text-gray-200">
+                            <i data-lucide="music" class="w-3.5 h-3.5 animate-pulse text-tiktok-cyan"></i>
+                            <div class="overflow-hidden w-48 relative h-4">
+                                <div class="whitespace-nowrap animate-marquee absolute inset-0">
+                                    Kweku the Traveler - Black Sherif &bull; Accra Highlife & Afrobeats &bull; Ghanaian Vibes
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- VIDEO CARD 2: GHANA JOLLOF / FOOD -->
+            <section class="video-card snap-start relative w-full h-full flex-shrink-0 bg-black overflow-hidden" data-id="2" data-liked="false" data-bookmarked="false" data-likes="980000" data-comments="12400" data-username="@chef_efya_kitchen" data-desc="Authentic Ghanaian Smokey Jollof Rice with Fried Plantain & Grilled Chicken 🍛🔥 No rivalry here, Ghana Jollof wins ALWAYS! #GhanaJollof #GhanaFood #WaakyeVibes #EatLocalGH #AccraEats" data-audio="Sugarcane (Remix) - Camidoh ft. King Promise">
+                <video class="video-player w-full h-full object-cover cursor-pointer" loop playsinline muted poster="https://images.unsplash.com/photo-1555396273-367ea4eb4db5?auto=format&fit=crop&w=800&q=80">
+                    <source src="https://assets.mixkit.co/videos/preview/mixkit-hands-holding-a-slice-of-pizza-42823-large.mp4" type="video/mp4">
+                </video>
+
+                <div class="play-icon-overlay absolute inset-0 flex items-center justify-center opacity-0 pointer-events-none transition-opacity duration-200">
+                    <div class="w-16 h-16 bg-black/50 rounded-full flex items-center justify-center backdrop-blur-sm">
+                        <i data-lucide="play" class="w-8 h-8 text-white fill-white ml-1"></i>
+                    </div>
+                </div>
+
+                <div class="absolute right-3 bottom-20 z-20 flex flex-col items-center space-y-5">
+                    <div class="relative group cursor-pointer" onclick="showToast('Viewing @chef_efya_kitchen profile')">
+                        <img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=150&q=80" class="w-12 h-12 rounded-full border-2 border-ghana-gold object-cover shadow-lg group-hover:scale-105 transition">
+                        <button onclick="event.stopPropagation(); toggleFollow(this)" class="follow-btn absolute -bottom-1.5 left-1/2 -translate-x-1/2 bg-tiktok-red hover:bg-red-600 text-white rounded-full p-0.5 shadow-md transition transform active:scale-90">
+                            <i data-lucide="plus" class="w-3.5 h-3.5"></i>
+                        </button>
+                    </div>
+
+                    <div class="flex flex-col items-center">
+                        <button onclick="toggleLike(this)" class="like-btn p-2 rounded-full hover:bg-white/10 transition active:scale-75 text-white">
+                            <i data-lucide="heart" class="w-8 h-8 transition-colors"></i>
+                        </button>
+                        <span class="like-count text-xs font-semibold drop-shadow-md mt-0.5">980K</span>
+                    </div>
+
+                    <div class="flex flex-col items-center">
+                        <button onclick="openComments('2')" class="p-2 rounded-full hover:bg-white/10 transition active:scale-75 text-white">
+                            <i data-lucide="message-circle" class="w-8 h-8 drop-shadow-md"></i>
+                        </button>
+                        <span class="comment-count text-xs font-semibold drop-shadow-md mt-0.5">12.4K</span>
+                    </div>
+
+                    <div class="flex flex-col items-center">
+                        <button onclick="toggleBookmark(this)" class="bookmark-btn p-2 rounded-full hover:bg-white/10 transition active:scale-75 text-white">
+                            <i data-lucide="bookmark" class="w-8 h-8 transition-colors drop-shadow-md"></i>
+                        </button>
+                        <span class="bookmark-count text-xs font-semibold drop-shadow-md mt-0.5">64.1K</span>
+                    </div>
+
+                    <div class="flex flex-col items-center">
+                        <button onclick="openShareModal()" class="p-2 rounded-full hover:bg-white/10 transition active:scale-75 text-white">
+                            <i data-lucide="share-2" class="w-8 h-8 drop-shadow-md"></i>
+                        </button>
+                        <span class="text-xs font-semibold drop-shadow-md mt-0.5">18.2K</span>
+                    </div>
+
+                    <div class="mt-2 cursor-pointer" onclick="showToast('Audio: Sugarcane - Camidoh')">
+                        <div class="w-10 h-10 rounded-full bg-gray-900 border-2 border-ghana-gold flex items-center justify-center animate-spin-slow music-disc-glow relative overflow-hidden">
+                            <img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=100&q=80" class="w-6 h-6 rounded-full object-cover">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="absolute bottom-16 left-0 right-16 z-20 p-4 bg-gradient-to-t from-black/80 via-black/30 to-transparent pointer-events-none">
+                    <div class="pointer-events-auto">
+                        <h3 class="font-bold text-base drop-shadow-md hover:underline cursor-pointer inline-block" onclick="showToast('@chef_efya_kitchen')">@chef_efya_kitchen</h3>
+                        <p class="text-sm mt-1 text-gray-100 line-clamp-2 leading-snug drop-shadow-sm">Authentic Ghanaian Smokey Jollof Rice with Fried Plantain & Grilled Chicken 🍛🔥 No rivalry here! <span class="font-semibold text-tiktok-cyan cursor-pointer">#GhanaJollof</span> <span class="font-semibold text-tiktok-cyan cursor-pointer">#GhanaFood</span></p>
+                        
+                        <div class="flex items-center space-x-2 mt-3 text-xs font-medium text-gray-200">
+                            <i data-lucide="music" class="w-3.5 h-3.5 animate-pulse text-tiktok-cyan"></i>
+                            <div class="overflow-hidden w-48 relative h-4">
+                                <div class="whitespace-nowrap animate-marquee absolute inset-0">
+                                    Sugarcane (Remix) - Camidoh ft. King Promise &bull; Highlife Grooves &bull; Ghana Food Beats
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- VIDEO CARD 3: GHANA TOURISM / LABADI & CAPE COAST -->
+            <section class="video-card snap-start relative w-full h-full flex-shrink-0 bg-black overflow-hidden" data-id="3" data-liked="false" data-bookmarked="false" data-likes="410200" data-comments="2890" data-username="@akuapem_travels" data-desc="Sunrise at Cape Coast Castle & Labadi Beach 🌊🇬🇭 Ghana is beautiful beyond words. Come home! #VisitGhana #BeyondTheReturn #YearOfReturn #GhanaTourism #ExploreGhana" data-audio="Aseda - Nacee (Acoustic)">
+                <video class="video-player w-full h-full object-cover cursor-pointer" loop playsinline muted poster="https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?auto=format&fit=crop&w=800&q=80">
+                    <source src="https://assets.mixkit.co/videos/preview/mixkit-forest-stream-in-the-sunlight-529-large.mp4" type="video/mp4">
+                </video>
+
+                <div class="play-icon-overlay absolute inset-0 flex items-center justify-center opacity-0 pointer-events-none transition-opacity duration-200">
+                    <div class="w-16 h-16 bg-black/50 rounded-full flex items-center justify-center backdrop-blur-sm">
+                        <i data-lucide="play" class="w-8 h-8 text-white fill-white ml-1"></i>
+                    </div>
+                </div>
+
+                <div class="absolute right-3 bottom-20 z-20 flex flex-col items-center space-y-5">
+                    <div class="relative group cursor-pointer" onclick="showToast('Viewing @akuapem_travels profile')">
+                        <img src="https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&w=150&q=80" class="w-12 h-12 rounded-full border-2 border-ghana-gold object-cover shadow-lg group-hover:scale-105 transition">
+                        <button onclick="event.stopPropagation(); toggleFollow(this)" class="follow-btn absolute -bottom-1.5 left-1/2 -translate-x-1/2 bg-tiktok-red hover:bg-red-600 text-white rounded-full p-0.5 shadow-md transition transform active:scale-90">
+                            <i data-lucide="plus" class="w-3.5 h-3.5"></i>
+                        </button>
+                    </div>
+
+                    <div class="flex flex-col items-center">
+                        <button onclick="toggleLike(this)" class="like-btn p-2 rounded-full hover:bg-white/10 transition active:scale-75 text-white">
+                            <i data-lucide="heart" class="w-8 h-8 transition-colors"></i>
+                        </button>
+                        <span class="like-count text-xs font-semibold drop-shadow-md mt-0.5">410.2K</span>
+                    </div>
+
+                    <div class="flex flex-col items-center">
+                        <button onclick="openComments('3')" class="p-2 rounded-full hover:bg-white/10 transition active:scale-75 text-white">
+                            <i data-lucide="message-circle" class="w-8 h-8 drop-shadow-md"></i>
+                        </button>
+                        <span class="comment-count text-xs font-semibold drop-shadow-md mt-0.5">2,890</span>
+                    </div>
+
+                    <div class="flex flex-col items-center">
+                        <button onclick="toggleBookmark(this)" class="bookmark-btn p-2 rounded-full hover:bg-white/10 transition active:scale-75 text-white">
+                            <i data-lucide="bookmark" class="w-8 h-8 transition-colors drop-shadow-md"></i>
+                        </button>
+                        <span class="bookmark-count text-xs font-semibold drop-shadow-md mt-0.5">40.5K</span>
+                    </div>
+
+                    <div class="flex flex-col items-center">
+                        <button onclick="openShareModal()" class="p-2 rounded-full hover:bg-white/10 transition active:scale-75 text-white">
+                            <i data-lucide="share-2" class="w-8 h-8 drop-shadow-md"></i>
+                        </button>
+                        <span class="text-xs font-semibold drop-shadow-md mt-0.5">11.3K</span>
+                    </div>
+
+                    <div class="mt-2 cursor-pointer" onclick="showToast('Audio: Aseda - Nacee')">
+                        <div class="w-10 h-10 rounded-full bg-gray-900 border-2 border-ghana-gold flex items-center justify-center animate-spin-slow music-disc-glow relative overflow-hidden">
+                            <img src="https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&w=100&q=80" class="w-6 h-6 rounded-full object-cover">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="absolute bottom-16 left-0 right-16 z-20 p-4 bg-gradient-to-t from-black/80 via-black/30 to-transparent pointer-events-none">
+                    <div class="pointer-events-auto">
+                        <h3 class="font-bold text-base drop-shadow-md hover:underline cursor-pointer inline-block" onclick="showToast('@akuapem_travels')">@akuapem_travels</h3>
+                        <p class="text-sm mt-1 text-gray-100 line-clamp-2 leading-snug drop-shadow-sm">Sunrise at Cape Coast Castle & Labadi Beach 🌊🇬🇭 Ghana is beautiful beyond words. <span class="font-semibold text-tiktok-cyan cursor-pointer">#VisitGhana</span> <span class="font-semibold text-tiktok-cyan cursor-pointer">#BeyondTheReturn</span></p>
+                        
+                        <div class="flex items-center space-x-2 mt-3 text-xs font-medium text-gray-200">
+                            <i data-lucide="music" class="w-3.5 h-3.5 animate-pulse text-tiktok-cyan"></i>
+                            <div class="overflow-hidden w-48 relative h-4">
+                                <div class="whitespace-nowrap animate-marquee absolute inset-0">
+                                    Aseda - Nacee (Acoustic) &bull; Inspiring Ghanaian Melodies &bull; Visit Ghana
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </main>
+
+        <!-- BOTTOM MOBILE NAVIGATION BAR -->
+        <nav class="absolute bottom-0 left-0 right-0 z-30 bg-black/95 border-t border-gray-800 px-3 py-2 flex items-center justify-around text-xs font-medium">
+            <button onclick="switchNavTab('home')" id="nav-home" class="flex flex-col items-center text-white space-y-0.5">
+                <i data-lucide="home" class="w-6 h-6"></i>
+                <span>Home</span>
+            </button>
+            <button onclick="switchNavTab('friends')" id="nav-friends" class="flex flex-col items-center text-gray-400 hover:text-white space-y-0.5">
+                <i data-lucide="users" class="w-6 h-6"></i>
+                <span>Friends</span>
+            </button>
+            <!-- Create Button (+) with TikTok Dual-Glow Effect -->
+            <button onclick="showToast('Create Ghanaian Content')" class="relative flex items-center justify-center group active:scale-95 transition">
+                <div class="w-11 h-7 rounded-lg bg-tiktok-cyan absolute -left-1"></div>
+                <div class="w-11 h-7 rounded-lg bg-tiktok-red absolute -right-1"></div>
+                <div class="w-11 h-7 rounded-lg bg-white relative flex items-center justify-center text-black">
+                    <i data-lucide="plus" class="w-5 h-5 stroke-[3]"></i>
+                </div>
+            </button>
+            <button onclick="switchNavTab('inbox')" id="nav-inbox" class="flex flex-col items-center text-gray-400 hover:text-white space-y-0.5 relative">
+                <i data-lucide="message-square" class="w-6 h-6"></i>
+                <span class="absolute top-0 right-3 w-2 h-2 bg-tiktok-red rounded-full"></span>
+                <span>Inbox</span>
+            </button>
+            <button onclick="switchNavTab('profile')" id="nav-profile" class="flex flex-col items-center text-gray-400 hover:text-white space-y-0.5">
+                <i data-lucide="user" class="w-6 h-6"></i>
+                <span>Profile</span>
+            </button>
+        </nav>
+
+        <!-- COMMENTS SLIDING DRAWER MODAL -->
+        <div id="comment-drawer" class="fixed inset-x-0 bottom-0 max-w-md mx-auto z-50 transform translate-y-full transition-transform duration-300 ease-in-out bg-tiktok-dark rounded-t-2xl shadow-2xl flex flex-col h-[70vh] border-t border-gray-800">
+            <div class="p-3 border-b border-gray-800 flex items-center justify-between text-center relative">
+                <div class="w-10 h-1 bg-gray-600 rounded-full absolute top-2 left-1/2 -translate-x-1/2"></div>
+                <h4 id="drawer-comment-count" class="w-full text-center text-xs font-bold pt-2 text-gray-200">3,120 comments</h4>
+                <button onclick="closeComments()" class="absolute right-3 top-3 text-gray-400 hover:text-white p-1">
+                    <i data-lucide="x" class="w-5 h-5"></i>
+                </button>
+            </div>
+
+            <div id="comments-list" class="flex-1 overflow-y-auto p-4 space-y-4 no-scrollbar">
+                <!-- Dynamically populated comments -->
+            </div>
+
+            <div class="p-3 border-t border-gray-800 bg-black/50 flex items-center space-x-2">
+                <img src="https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=100&q=80" class="w-8 h-8 rounded-full object-cover">
+                <input id="comment-input" type="text" placeholder="Add comment... (e.g. Chale this hard! 🔥)" class="flex-1 bg-gray-800 text-white text-sm rounded-full px-4 py-2 focus:outline-none focus:ring-1 focus:ring-tiktok-red">
+                <button onclick="postComment()" class="text-tiktok-red hover:text-red-400 font-bold text-sm px-2">Post</button>
+            </div>
         </div>
-        <div class="act-info">
-          <div class="act-title">${act.title}</div>
-          <div class="act-time">${act.time} ${act.status ? '• ' + act.status : ''}</div>
+
+        <!-- SHARE MODAL SLIDE UP -->
+        <div id="share-modal" class="fixed inset-x-0 bottom-0 max-w-md mx-auto z-50 transform translate-y-full transition-transform duration-300 ease-in-out bg-tiktok-dark rounded-t-2xl p-4 border-t border-gray-800 hidden">
+            <div class="flex justify-between items-center mb-4">
+                <h4 class="text-sm font-bold">Share to</h4>
+                <button onclick="closeShareModal()" class="text-gray-400 hover:text-white"><i data-lucide="x" class="w-5 h-5"></i></button>
+            </div>
+            <div class="grid grid-cols-4 gap-4 text-center text-xs mb-4">
+                <button onclick="copyVideoLink()" class="flex flex-col items-center space-y-1 group">
+                    <div class="w-12 h-12 rounded-full bg-gray-800 flex items-center justify-center group-hover:bg-gray-700 transition"><i data-lucide="link" class="w-6 h-6 text-tiktok-cyan"></i></div>
+                    <span>Copy Link</span>
+                </button>
+                <button onclick="showToast('Shared to WhatsApp!')" class="flex flex-col items-center space-y-1 group">
+                    <div class="w-12 h-12 rounded-full bg-green-600 flex items-center justify-center group-hover:bg-green-500 transition"><i data-lucide="message-circle" class="w-6 h-6"></i></div>
+                    <span>WhatsApp</span>
+                </button>
+                <button onclick="showToast('Shared to Stories!')" class="flex flex-col items-center space-y-1 group">
+                    <div class="w-12 h-12 rounded-full bg-gradient-to-tr from-yellow-500 via-pink-500 to-purple-600 flex items-center justify-center group-hover:opacity-90 transition"><i data-lucide="instagram" class="w-6 h-6"></i></div>
+                    <span>Stories</span>
+                </button>
+                <button onclick="showToast('Reposted!')" class="flex flex-col items-center space-y-1 group">
+                    <div class="w-12 h-12 rounded-full bg-tiktok-red flex items-center justify-center group-hover:bg-red-600 transition"><i data-lucide="repeat" class="w-6 h-6"></i></div>
+                    <span>Repost</span>
+                </button>
+            </div>
         </div>
-        <div class="${amountClass}">${sign}₦${Number(act.amount).toLocaleString()}</div>
-      </div>
-    `;
-  }).join("");
-}
 
-function logout() {
-  if (confirm("Are you sure you want to log out?")) {
-    if (realtimeUnsubscribe) realtimeUnsubscribe();
-    localStorage.removeItem("9jaCashUser");
-    localStorage.removeItem("walletBalance");
-    window.location.href = "login.html";
-  }
-}
+        <!-- MUTE/UNMUTE BUTTON TOP RIGHT -->
+        <button id="mute-btn" onclick="toggleMute()" class="absolute top-16 right-4 z-30 bg-black/40 hover:bg-black/60 backdrop-blur-md p-2 rounded-full text-white transition">
+            <i data-lucide="volume-x" id="mute-icon" class="w-5 h-5"></i>
+        </button>
 
-function sendBounceNotification(amount) {
-  if ("Notification" in window && Notification.permission === "granted") {
-    new Notification("Withdrawal Returned", { body: "Your ₦" + amount.toLocaleString() + " withdrawal was returned." });
-  }
-}
-
-function requestNotify() {
-  if ("Notification" in window) {
-    Notification.requestPermission().then(permission => {
-      if (permission === "granted") showToast("Notifications enabled!");
-      dismissNotify();
-    });
-  } else dismissNotify();
-}
-
-function dismissNotify() {
-  const banner = document.getElementById("notifyBanner");
-  if (banner) banner.classList.remove("show");
-}
-
-function showDownloadPrompt() {
-  const banner = document.getElementById("downloadBanner");
-  if (banner) banner.classList.add("show");
-}
-
-function dismissDownloadPrompt() {
-  const banner = document.getElementById("downloadBanner");
-  if (banner) banner.classList.remove("show");
-}
-
-const APK_URL = "https://raw.githubusercontent.com/Xantech007/9jaCashMine/main/9jaCash.apk";
-
-function downloadAppAPK() {
-  showToast("Downloading APK...");
-  dismissDownloadPrompt();
-  window.open(APK_URL, "_blank");
-}
-
-
-// ---- Customer Care modal: handles come from Firestore settings/redirects ----
-let socialHandles = { telegram: "", whatsapp: "" };
-try {
-  const cached = JSON.parse(localStorage.getItem("9jaCashSocialHandles"));
-  if (cached) socialHandles = { telegram: cached.telegram || "", whatsapp: cached.whatsapp || "" };
-} catch (e) { }
-
-function buildTelegramUrl(handle) {
-  if (!handle) return "";
-  return formatExternalLink(String(handle), "");
-}
-
-function buildWhatsappUrl(handle) {
-  if (!handle) return "";
-  const clean = String(handle).trim();
-  if (/^(https?:\/\/|whatsapp:\/\/)/i.test(clean)) return clean;
-  const digits = clean.replace(/[^\d]/g, "");
-  return digits ? "https://wa.me/" + digits : "";
-}
-
-// Customer Care modal: Telegram username / WhatsApp number from settings/redirects
-function updateCustomerCareLinks() {
-  const tg = document.getElementById("modalTelegramBtn");
-  const wa = document.getElementById("modalWhatsappBtn");
-  const tgUrl = buildTelegramUrl(socialHandles.telegram);
-  const waUrl = buildWhatsappUrl(socialHandles.whatsapp);
-  if (tg && tgUrl) tg.href = tgUrl;
-  if (wa && waUrl) {
-    wa.href = waUrl + (waUrl.indexOf("?") === -1 ? "?text=" + encodeURIComponent("Hello 9jaCash Support, I need assistance") : "");
-  }
-}
-
-function loadSocialHandles() {
-  if (!db) return;
-  db.collection("settings").doc("redirects").onSnapshot(function (doc) {
-    if (!doc.exists) return;
-    const d = doc.data() || {};
-    socialHandles = {
-      telegram: d.failedSupportHandle || "",
-      whatsapp: d.whatsappHandle || ""
-    };
-    try { localStorage.setItem("9jaCashSocialHandles", JSON.stringify(socialHandles)); } catch (e) { }
-    updateCustomerCareLinks();
-  }, function (err) { });
-}
-
-// Alternates Telegram / WhatsApp on each page load; falls back to whichever exists
-function pickSocialPlatform() {
-  const tg = buildTelegramUrl(paymentHandles.telegram);
-  const wa = buildWhatsappUrl(paymentHandles.whatsapp);
-  if (tg && wa) return window.__socialPlatform || "telegram";
-  if (wa) return "whatsapp";
-  if (tg) return "telegram";
-  return "";
-}
-
-function renderSocialPopup() {
-  const platform = pickSocialPlatform();
-  if (!platform) return false;
-
-  const isWa = platform === "whatsapp";
-  const url = isWa ? buildWhatsappUrl(paymentHandles.whatsapp) : buildTelegramUrl(paymentHandles.telegram);
-  const iconClass = isWa ? "fa-whatsapp" : "fa-telegram";
-
-  const icon = document.getElementById("socialPopupIcon");
-  const title = document.getElementById("socialPopupTitle");
-  const btn = document.getElementById("socialPopupBtn");
-
-  if (icon) {
-    icon.classList.remove("telegram", "whatsapp");
-    icon.classList.add(platform);
-    icon.innerHTML = '<i class="fa-brands ' + iconClass + '"></i>';
-  }
-  if (title) title.textContent = isWa ? "📢 Join Our WhatsApp Community" : "📢 Join Our Telegram Channel";
-  if (btn) {
-    btn.classList.remove("telegram", "whatsapp");
-    btn.classList.add(platform);
-    btn.href = url;
-    btn.innerHTML = '<i class="fa-brands ' + iconClass + '"></i> Join Now';
-    btn.onclick = function () { dismissSocialPopup(); };
-  }
-  return true;
-}
-
-function showSocialPopup() {
-  const p = document.getElementById("socialJoinPopup");
-  if (!p) return;
-  if (!renderSocialPopup()) return; // no handles available, keep hidden
-  p.classList.add("show");
-}
-
-function dismissSocialPopup() {
-  const p = document.getElementById("socialJoinPopup");
-  if (p) p.classList.remove("show");
-}
-
-function initSocialPopup() {
-  // Alternate platform each page load
-  let last = "whatsapp";
-  try { last = localStorage.getItem("9jaCashLastSocial") || "whatsapp"; } catch (e) { }
-  window.__socialPlatform = last === "telegram" ? "whatsapp" : "telegram";
-  try { localStorage.setItem("9jaCashLastSocial", window.__socialPlatform); } catch (e) { }
-
-  updateCustomerCareLinks(); // apply cached handles immediately
-  loadSocialHandles();
-  // Show the popup 3 seconds after every page load
-  setTimeout(showSocialPopup, 3000);
-}
-
-function startLiveWithdrawalPopups() {
-  const users = ["Musa B.", "Chidi O.", "Amina Y.", "Efe P.", "Blessing K."];
-  const amounts = [15000, 25000, 30000, 50000, 20000];
-
-  setInterval(() => {
-    const popup = document.getElementById("liveWithdrawalPopup");
-    if (!popup) return;
-
-    const user = users[Math.floor(Math.random() * users.length)];
-    const amt = amounts[Math.floor(Math.random() * amounts.length)];
-
-    document.getElementById("liveWithdrawalAvatar").textContent = user.charAt(0);
-    document.getElementById("liveWithdrawalUser").textContent = user;
-    document.getElementById("liveWithdrawalAction").textContent = "just withdrew " + formatMoney(amt);
-
-    popup.style.opacity = "1";
-    popup.style.transform = "translate(-50%, 0)";
-
-    setTimeout(() => {
-      popup.style.opacity = "0";
-      popup.style.transform = "translate(-50%, -150px)";
-    }, 4000);
-  }, 18000);
-}
-
-document.addEventListener("DOMContentLoaded", function () {
-  initDarkMode();
-  initFirebase();
-  renderUserInfo();
-  renderBankInfo();
-  updateBalance();
-  initCheckin();
-  initClaim();
-  initReferrals();
-  renderActivities();
-  checkPendingBounceOnLoad();
-  checkAndShowVerifyButton();
-  setupRealtimeListener();
-  loadTelegramConfig();
-  initTutorial();
-  startLiveWithdrawalPopups();
-  initSocialPopup();
-});
-
-// Sample Notifications Data Array
-let userNotifications = [
-  {
-    id: 1,
-    title: "Welcome to 9jaCash!",
-    desc: "Start mining daily to earn rewards and build up your balance.",
-    time: "2 mins ago",
-    read: false
-  },
-  {
-    id: 2,
-    title: "Daily Check-In Ready",
-    desc: "Don't forget to claim your daily check-in streak reward.",
-    time: "1 hour ago",
-    read: false
-  }
-];
-
-/* ===================================================
-   1. NOTIFICATIONS MODAL FUNCTIONS
-   =================================================== */
-
-function openNotificationsModal() {
-  const modal = document.getElementById('notificationsOverlay');
-  if (modal) {
-    renderNotifications();
-    modal.classList.add('active');
-    document.body.style.overflow = 'hidden';
-  }
-}
-
-function closeNotificationsModal(event) {
-  if (event && event.target !== event.currentTarget) return;
-  const modal = document.getElementById('notificationsOverlay');
-  if (modal) {
-    modal.classList.remove('active');
-    document.body.style.overflow = '';
-  }
-}
-
-function updateBellDot() {
-  const dot = document.getElementById('bellDot');
-  if (dot) dot.style.display = userNotifications.some(n => !n.read) ? 'block' : 'none';
-}
-
-function renderNotifications() {
-  updateBellDot();
-  const container = document.getElementById('notificationsList');
-  const badge = document.getElementById('modalNotifBadge');
-  if (!container) return;
-
-  const unreadCount = userNotifications.filter(n => !n.read).length;
-  if (badge) {
-    if (unreadCount > 0) {
-      badge.textContent = unreadCount;
-      badge.classList.remove('hidden');
-    } else {
-      badge.classList.add('hidden');
-    }
-  }
-
-  if (userNotifications.length === 0) {
-    container.innerHTML = `
-      <div style="text-align:center; padding: 24px 0; color: #94a3b8; font-size: 13px;">
-        <i class="fa-solid fa-bell-slash" style="font-size:24px; margin-bottom:8px;"></i>
-        <p>No notifications yet</p>
-      </div>`;
-    return;
-  }
-
-  container.innerHTML = userNotifications.map(n => `
-    <div class="notif-item ${!n.read ? 'unread' : ''}">
-      <div style="width: 32px; height: 32px; border-radius: 10px; background: rgba(99, 102, 241, 0.1); color: #6366f1; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
-        <i class="fa-solid fa-bell" style="font-size: 12px;"></i>
-      </div>
-      <div style="flex: 1;">
-        <div class="notif-title">${n.title}</div>
-        <div class="notif-desc">${n.desc}</div>
-        <div class="notif-time">${n.time}</div>
-      </div>
+        <!-- TOAST NOTIFICATION CONTAINER -->
+        <div id="toast" class="absolute top-16 left-1/2 -translate-x-1/2 z-50 bg-gray-800/90 text-white text-xs px-4 py-2 rounded-full opacity-0 pointer-events-none transition-opacity duration-300 shadow-xl border border-gray-700">
+            Toast Message
+        </div>
     </div>
-  `).join('');
-}
 
-function markAllNotificationsAsRead() {
-  userNotifications.forEach(n => n.read = true);
-  renderNotifications();
-  updateBellDot();
-  if (typeof showToast === 'function') {
-    showToast('All notifications marked as read');
-  }
-}
+    <script>
+        // Ghanaian Localized Comments Database
+        const commentsData = {
+            '1': [
+                { id: 101, user: '@kofi_swag', avatar: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=100&q=80', text: 'Chale, Accra night vibe nono! 🔥🇬🇭', likes: 512 },
+                { id: 102, user: '@ama_accra', avatar: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=100&q=80', text: 'Which club in Osu is this? I\'m pulling up!', likes: 142 },
+                { id: 103, user: '@yaw_beatz', avatar: 'https://images.unsplash.com/photo-1570295999919-56ceb5ecca61?auto=format&fit=crop&w=100&q=80', text: 'Blacko song in the background makes it 10x harder 🔥', likes: 98 }
+            ],
+            '2': [
+                { id: 201, user: '@mensa_gh', avatar: 'https://images.unsplash.com/photo-1527980965255-d3b416303d12?auto=format&fit=crop&w=100&q=80', text: 'Ghana Jollof top tier! Nigerian brothers in shambles 😂', likes: 3410 },
+                { id: 202, user: '@abena_bakes', avatar: 'https://images.unsplash.com/photo-1580489944761-15a19d654956?auto=format&fit=crop&w=100&q=80', text: 'The plantain needs to be extra ripe though! Looks delicious 😋', likes: 820 }
+            ],
+            '3': [
+                { id: 301, user: '@kwadwo_hikes', avatar: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=100&q=80', text: 'Ghana is sweet o! Make sure you visit Kakum Canopy Walk next!', likes: 640 }
+            ]
+        };
 
-/* ===================================================
-   2. CUSTOMER CARE MODAL FUNCTIONS
-   =================================================== */
+        let currentActiveCard = null;
+        let activeVideoId = '1';
+        let isMuted = true;
 
-function openCustomerCareModal() {
-  const modal = document.getElementById('customerCareModal');
-  if (modal) {
-    updateCustomerCareLinks();
-    modal.classList.add('show');
-  }
-}
+        document.addEventListener('DOMContentLoaded', () => {
+            lucide.createIcons();
+            setupIntersectionObserver();
+            setupDoubleTapHearts();
+            setupKeyboardNavigation();
+        });
 
-function closeCustomerCareModal(event) {
-  if (event && event.target !== event.currentTarget) return;
-  const modal = document.getElementById('customerCareModal');
-  if (modal) {
-    modal.classList.remove('show');
-  }
-}
+        function setupIntersectionObserver() {
+            const videoCards = document.querySelectorAll('.video-card');
+            
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    const video = entry.target.querySelector('video');
+                    if (entry.isIntersecting) {
+                        currentActiveCard = entry.target;
+                        activeVideoId = entry.target.getAttribute('data-id');
+                        video.play().catch(err => console.log('Autoplay blocked:', err));
+                    } else {
+                        video.pause();
+                        video.currentTime = 0;
+                    }
+                });
+            }, { threshold: 0.6 });
 
-// Close modals on Escape key press
-document.addEventListener('DOMContentLoaded', updateBellDot);
+            videoCards.forEach(card => observer.observe(card));
 
-document.addEventListener('keydown', function (e) {
-  if (e.key === 'Escape') {
-    closeNotificationsModal();
-    closeCustomerCareModal();
-  }
-});
+            videoCards.forEach(card => {
+                const video = card.querySelector('video');
+                const playOverlay = card.querySelector('.play-icon-overlay');
+
+                card.addEventListener('click', (e) => {
+                    if (e.target.closest('button') || e.target.closest('#comment-drawer')) return;
+
+                    if (video.paused) {
+                        video.play();
+                        playOverlay.classList.add('opacity-0');
+                    } else {
+                        video.pause();
+                        playOverlay.classList.remove('opacity-0');
+                    }
+                });
+            });
+        }
+
+        function setupDoubleTapHearts() {
+            let lastTap = 0;
+            const videoCards = document.querySelectorAll('.video-card');
+
+            videoCards.forEach(card => {
+                card.addEventListener('touchend', (e) => handleDoubleTap(e, card));
+                card.addEventListener('dblclick', (e) => spawnFloatingHeart(e, card));
+            });
+
+            function handleDoubleTap(e, card) {
+                const currentTime = new Date().getTime();
+                const tapLength = currentTime - lastTap;
+                if (tapLength < 300 && tapLength > 0) {
+                    const touch = e.changedTouches[0];
+                    spawnFloatingHeart({ clientX: touch.clientX, clientY: touch.clientY }, card);
+                    const likeBtn = card.querySelector('.like-btn');
+                    if (card.getAttribute('data-liked') !== 'true') {
+                        toggleLike(likeBtn);
+                    }
+                }
+                lastTap = currentTime;
+            }
+        }
+
+        function spawnFloatingHeart(e, card) {
+            const rect = card.getBoundingClientRect();
+            const x = e.clientX - rect.left;
+            const y = e.clientY - rect.top;
+
+            const heart = document.createElement('div');
+            heart.className = 'floating-heart text-tiktok-red';
+            const randomRotation = (Math.random() - 0.5) * 40;
+            heart.style.setProperty('--rot', `${randomRotation}deg`);
+            heart.style.left = `${x}px`;
+            heart.style.top = `${y}px`;
+            heart.innerHTML = `<svg class="w-20 h-20 fill-current" viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>`;
+
+            card.appendChild(heart);
+            setTimeout(() => heart.remove(), 900);
+        }
+
+        function toggleLike(btn) {
+            const card = btn.closest('.video-card');
+            const isLiked = card.getAttribute('data-liked') === 'true';
+            const countSpan = card.querySelector('.like-count');
+            let likes = parseInt(card.getAttribute('data-likes'));
+
+            if (!isLiked) {
+                card.setAttribute('data-liked', 'true');
+                likes += 1;
+                btn.classList.add('text-tiktok-red', 'animate-heart-bounce');
+                btn.classList.remove('text-white');
+            } else {
+                card.setAttribute('data-liked', 'false');
+                likes -= 1;
+                btn.classList.remove('text-tiktok-red', 'animate-heart-bounce');
+                btn.classList.add('text-white');
+            }
+            card.setAttribute('data-likes', likes);
+            countSpan.textContent = formatNumber(likes);
+        }
+
+        function toggleBookmark(btn) {
+            const card = btn.closest('.video-card');
+            const isBookmarked = card.getAttribute('data-bookmarked') === 'true';
+
+            if (!isBookmarked) {
+                card.setAttribute('data-bookmarked', 'true');
+                btn.classList.add('text-yellow-400');
+                btn.classList.remove('text-white');
+                showToast('Saved to Favorites');
+            } else {
+                card.setAttribute('data-bookmarked', 'false');
+                btn.classList.remove('text-yellow-400');
+                btn.classList.add('text-white');
+                showToast('Removed from Favorites');
+            }
+        }
+
+        function toggleFollow(btn) {
+            btn.classList.add('scale-0');
+            setTimeout(() => {
+                btn.parentElement.classList.add('ring-2', 'ring-ghana-gold');
+                showToast('Following creator!');
+            }, 200);
+        }
+
+        function toggleMute() {
+            const videos = document.querySelectorAll('video');
+            const muteIcon = document.getElementById('mute-icon');
+            isMuted = !isMuted;
+
+            videos.forEach(v => v.muted = isMuted);
+            muteIcon.setAttribute('data-lucide', isMuted ? 'volume-x' : 'volume-2');
+            lucide.createIcons();
+            showToast(isMuted ? 'Sound Off' : 'Sound On');
+        }
+
+        function openComments(id) {
+            activeVideoId = id;
+            const drawer = document.getElementById('comment-drawer');
+            const list = document.getElementById('comments-list');
+            const countHeader = document.getElementById('drawer-comment-count');
+
+            const comments = commentsData[id] || [];
+            countHeader.textContent = `${comments.length.toLocaleString()} comments`;
+
+            list.innerHTML = comments.map(c => `
+                <div class="flex items-start justify-between space-x-3">
+                    <img src="${c.avatar}" class="w-8 h-8 rounded-full object-cover">
+                    <div class="flex-1 text-xs">
+                        <span class="font-bold text-gray-400">${c.user}</span>
+                        <p class="text-white mt-0.5">${c.text}</p>
+                    </div>
+                    <button onclick="likeComment(this)" class="flex flex-col items-center text-gray-400 hover:text-tiktok-red transition">
+                        <i data-lucide="heart" class="w-4 h-4"></i>
+                        <span class="text-[10px]">${c.likes}</span>
+                    </button>
+                </div>
+            `).join('');
+
+            lucide.createIcons();
+            drawer.classList.remove('translate-y-full');
+        }
+
+        function closeComments() {
+            document.getElementById('comment-drawer').classList.add('translate-y-full');
+        }
+
+        function postComment() {
+            const input = document.getElementById('comment-input');
+            const text = input.value.trim();
+            if (!text) return;
+
+            if (!commentsData[activeVideoId]) commentsData[activeVideoId] = [];
+            commentsData[activeVideoId].unshift({
+                id: Date.now(),
+                user: '@you',
+                avatar: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=100&q=80',
+                text: text,
+                likes: 0
+            });
+
+            input.value = '';
+            openComments(activeVideoId);
+            showToast('Comment posted!');
+        }
+
+        function likeComment(btn) {
+            btn.classList.toggle('text-tiktok-red');
+        }
+
+        function switchTab(tab) {
+            const indFollowing = document.getElementById('indicator-following');
+            const indForYou = document.getElementById('indicator-foryou');
+            const btnFollowing = document.getElementById('tab-following');
+            const btnForYou = document.getElementById('tab-foryou');
+
+            if (tab === 'following') {
+                indFollowing.classList.remove('hidden');
+                indForYou.classList.add('hidden');
+                btnFollowing.className = 'relative text-white py-1';
+                btnForYou.className = 'relative text-white/60 hover:text-white transition py-1';
+            } else {
+                indForYou.classList.remove('hidden');
+                indFollowing.classList.add('hidden');
+                btnForYou.className = 'relative text-white py-1';
+                btnFollowing.className = 'relative text-white/60 hover:text-white transition py-1';
+            }
+        }
+
+        function switchNavTab(tab) {
+            const tabs = ['home', 'friends', 'inbox', 'profile'];
+            tabs.forEach(t => {
+                const el = document.getElementById(`nav-${t}`);
+                if (t === tab) {
+                    el.className = 'flex flex-col items-center text-white space-y-0.5';
+                } else {
+                    el.className = 'flex flex-col items-center text-gray-400 hover:text-white space-y-0.5';
+                }
+            });
+            if (tab !== 'home') showToast(`${tab.toUpperCase()} page opened`);
+        }
+
+        function openShareModal() {
+            const modal = document.getElementById('share-modal');
+            modal.classList.remove('hidden', 'translate-y-full');
+        }
+
+        function closeShareModal() {
+            const modal = document.getElementById('share-modal');
+            modal.classList.add('translate-y-full');
+            setTimeout(() => modal.classList.add('hidden'), 300);
+        }
+
+        function copyVideoLink() {
+            const dummy = document.createElement('input');
+            document.body.appendChild(dummy);
+            dummy.value = window.location.href;
+            dummy.select();
+            document.execCommand('copy');
+            document.body.removeChild(dummy);
+            closeShareModal();
+            showToast('Link copied to clipboard!');
+        }
+
+        function setupKeyboardNavigation() {
+            const feed = document.getElementById('video-feed');
+            document.addEventListener('keydown', (e) => {
+                if (e.target.tagName === 'INPUT') return;
+
+                if (e.key === 'ArrowDown' || e.key === 'j') {
+                    feed.scrollBy({ top: feed.clientHeight, behavior: 'smooth' });
+                } else if (e.key === 'ArrowUp' || e.key === 'k') {
+                    feed.scrollBy({ top: -feed.clientHeight, behavior: 'smooth' });
+                } else if (e.key === ' ') {
+                    e.preventDefault();
+                    if (currentActiveCard) {
+                        const video = currentActiveCard.querySelector('video');
+                        video.paused ? video.play() : video.pause();
+                    }
+                } else if (e.key.toLowerCase() === 'l') {
+                    if (currentActiveCard) {
+                        toggleLike(currentActiveCard.querySelector('.like-btn'));
+                    }
+                } else if (e.key.toLowerCase() === 'm') {
+                    toggleMute();
+                }
+            });
+        }
+
+        function showToast(msg) {
+            const toast = document.getElementById('toast');
+            toast.textContent = msg;
+            toast.classList.remove('opacity-0');
+            setTimeout(() => toast.classList.add('opacity-0'), 2000);
+        }
+
+        function formatNumber(num) {
+            if (num >= 1000000) return (num / 1000000).toFixed(1) + 'M';
+            if (num >= 1000) return (num / 1000).toFixed(1) + 'K';
+            return num.toString();
+        }
+    </script>
+</body>
+</html>
