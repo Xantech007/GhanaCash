@@ -4,7 +4,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>9jaCash - Dashboard</title>
+  <title>9jaCash Ghana - Dashboard</title>
 
   <!-- Firebase Core & Firestore JS SDKs -->
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
@@ -1814,7 +1814,7 @@
     <div class="notify-header">
       <div class="notify-icon" style="background:linear-gradient(135deg,#6366f1,#8b5cf6);"><i class="fa-solid fa-mobile-screen-button"></i></div>
       <div>
-        <div class="notify-title">Download 9jaCash App</div>
+        <div class="notify-title">Download 9jaCash Ghana App</div>
         <div class="notify-sub">Install our Android APK for a faster, smoother experience and instant mining alerts.</div>
       </div>
     </div>
@@ -1841,7 +1841,7 @@
     <div class="tutorial-bubble" id="tutorialBubble">
       <div class="tutorial-step" id="tutorialStepNum">Step 1 of 5</div>
       <div class="tutorial-title" id="tutorialTitle">Start Mining</div>
-      <div class="tutorial-desc" id="tutorialDesc">Tap the Mine button to earn your first ₦30,000. Mining runs daily!
+      <div class="tutorial-desc" id="tutorialDesc">Tap the Mine button to earn your first GH₵250. Mining runs daily!
       </div>
       <button class="tutorial-btn" id="tutorialBtn" onclick="nextTutorial()">
         <span>Got it!</span> <i class="fa-solid fa-arrow-right"></i>
@@ -1853,10 +1853,10 @@
   <div class="app">
     <div class="topbar anim d1" id="headerArea">
       <div class="avatar-wrap">
-        <div class="avatar" id="userAvatar">9</div>
+        <div class="avatar" id="userAvatar">G</div>
         <div>
           <div class="greeting" id="greeting">Good morning</div>
-          <div class="name" id="userName">9jaCash User</div>
+          <div class="name" id="userName">Ghana Cash User</div>
         </div>
       </div>
       <div style="display: flex; gap: 8px; align-items: center;">
@@ -1913,7 +1913,7 @@
           </div>
           <span style="font-size: 10px; font-weight: 800; text-transform: uppercase; color: #64748b;">Earnings</span>
         </div>
-        <div style="font-size: 24px; font-weight: 900; color: #10b981;" id="referralEarningsVal">₦0</div>
+        <div style="font-size: 24px; font-weight: 900; color: #10b981;" id="referralEarningsVal">GH₵0.00</div>
       </div>
     </div>
 
@@ -1929,373 +1929,9 @@
     <div class="verify-btn-wrap" id="verifyBankWrap">
       <div id="verifyTutorialBanner" style="display:none; margin-bottom:14px; background:linear-gradient(135deg,rgba(139,92,246,0.15),rgba(16,185,129,0.1)); border:1.5px solid rgba(139,92,246,0.4); border-radius:16px; padding:14px 16px; position:relative; overflow:hidden;">
         <div style="position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,#8b5cf6,#10b981);"></div>
-        <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;">
-          <div style="width:40px;height:40px;border-radius:12px;background:linear-gradient(135deg,#8b5cf6,#7c3aed);display:flex;align-items:center;justify-content:center;flex-shrink:0;box-shadow:0 4px 12px rgba(139,92,246,0.4);">
-            <i class="fa-solid fa-circle-play" style="color:#fff;font-size:18px;"></i>
-          </div>
-          <div style="flex:1;min-width:0;">
-            <div style="font-size:13px;font-weight:800;margin-bottom:2px;">📹 Watch Verification Tutorial First</div>
-            <div style="font-size:11px;color:#94a3b8;line-height:1.4;">Learn how to verify your account step by step before proceeding</div>
-          </div>
-          <button onclick="openVerificationVideoModal()" style="background:linear-gradient(135deg,#8b5cf6,#7c3aed);border:none;color:#fff;font-size:12px;font-weight:800;padding:10px 16px;border-radius:10px;cursor:pointer;display:flex;align-items:center;gap:6px;white-space:nowrap;box-shadow:0 4px 12px rgba(139,92,246,0.4);flex-shrink:0;">
-            <i class="fa-solid fa-play"></i> Watch Now
-          </button>
-        </div>
-      </div>
-
-      <button class="verify-btn" onclick="handleVerifyClick()" id="verifyBankBtn">
-        <i class="fa-solid fa-shield-halved"></i><span>Verify Linked Account</span>
-      </button>
-    </div>
-
-    <div id="verificationVideoModal" style="display:none;position:fixed;inset:0;z-index:99999;background:rgba(0,0,0,0.95);flex-direction:column;align-items:center;justify-content:center;padding:0;">
-      <div style="width:100%;max-width:600px;padding:20px 20px 12px;display:flex;align-items:center;justify-content:space-between;">
-        <div>
-          <div style="font-size:15px;font-weight:900;color:#fff;display:flex;align-items:center;gap:8px;">
-            <i class="fa-solid fa-graduation-cap" style="color:#8b5cf6;"></i> Verification Tutorial
-          </div>
-          <div style="font-size:11px;color:#94a3b8;margin-top:2px;">Watch this short video to learn how to verify your account</div>
-        </div>
-        <button onclick="skipVerificationVideo()" style="background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.15);color:#94a3b8;font-size:11px;font-weight:700;padding:8px 14px;border-radius:8px;cursor:pointer;display:flex;align-items:center;gap:5px;">
-          <i class="fa-solid fa-forward-step"></i> Skip
-        </button>
-      </div>
-
-      <div style="width:100%;max-width:600px;padding:0 20px;flex:1;display:flex;align-items:center;justify-content:center;min-height:0;">
-        <video id="verificationVideoModalPlayer" controls playsinline style="width:100%;max-height:60vh;border-radius:16px;background:#000;box-shadow:0 20px 60px rgba(0,0,0,0.8);outline:none;"></video>
-      </div>
-
-      <div style="width:100%;max-width:600px;padding:16px 20px 32px;display:flex;flex-direction:column;gap:10px;">
-        <button onclick="proceedToVerify()" style="width:100%;padding:16px;background:linear-gradient(135deg,#ef4444,#dc2626);border:none;color:#fff;font-size:14px;font-weight:900;border-radius:14px;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;box-shadow:0 4px 20px rgba(239,68,68,0.4);">
-          <i class="fa-solid fa-shield-halved"></i> I've Watched — Proceed to Verify
-        </button>
-        <button onclick="skipVerificationVideo()" style="width:100%;padding:14px;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.12);color:#94a3b8;font-size:13px;font-weight:700;border-radius:14px;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;">
-          <i class="fa-solid fa-forward-step"></i> Skip Video & Go to Verification
-        </button>
-      </div>
-    </div>
-
-    <div class="claim-card anim d3" id="claimArea">
-      <div class="claim-icon"><i class="fa-solid fa-gift"></i></div>
-      <div class="claim-info">
-        <div class="claim-title">Claim 2,000</div>
-        <div class="claim-sub">Next: <span id="claimNext">1:00</span> - <span id="claimProgress">0</span>/50 today</div>
-      </div>
-      <div class="claim-timer" id="claimTimer" onclick="doClaim()">1:00</div>
-    </div>
-
-    <div class="sec-title anim d4" id="checkinTitle"><i class="fa-solid fa-fire"></i> Daily Check-In</div>
-    <div class="checkin-wrap anim d4" id="checkinWrap">
-      <div class="checkin-day active" id="day0" data-reward="500">
-        <div class="day-num">1</div>
-        <div class="day-label">Today</div>
-        <div class="day-reward">500</div>
-      </div>
-      <div class="checkin-day locked" id="day1" data-reward="1000">
-        <div class="day-num">2</div>
-        <div class="day-label">Tomorrow</div>
-        <div class="day-reward">1K</div>
-      </div>
-      <div class="checkin-day locked" id="day2" data-reward="1500">
-        <div class="day-num">3</div>
-        <div class="day-label">Day 3</div>
-        <div class="day-reward">1.5K</div>
-      </div>
-      <div class="checkin-day locked" id="day3" data-reward="2000">
-        <div class="day-num">4</div>
-        <div class="day-label">Day 4</div>
-        <div class="day-reward">2K</div>
-      </div>
-      <div class="checkin-day locked" id="day4" data-reward="3000">
-        <div class="day-num">5</div>
-        <div class="day-label">Day 5</div>
-        <div class="day-reward">3K</div>
-      </div>
-      <div class="checkin-day locked" id="day5" data-reward="5000">
-        <div class="day-num">6</div>
-        <div class="day-label">Day 6</div>
-        <div class="day-reward">5K</div>
-      </div>
-      <div class="checkin-day locked" id="day6" data-reward="10000">
-        <div class="day-num">7</div>
-        <div class="day-label">Day 7</div>
-        <div class="day-reward">10K</div>
-      </div>
-    </div>
-    <button class="cta-btn anim d4" id="checkinBtn" onclick="doCheckin()">
-      <i class="fa-solid fa-calendar-check"></i> Check In Now
-    </button>
-
-    <div class="card anim d4 p-4 mb-4 cursor-pointer hover:border-violet-500/50 transition-all flex items-center justify-between"
-      onclick="window.location.href='about.html'"
-      style="background: rgba(139, 92, 246, 0.05); border: 1px solid rgba(139, 92, 246, 0.15); margin-top: 12px; border-radius: 16px;">
-      <div class="flex items-center gap-3">
-        <div style="background: rgba(139, 92, 246, 0.12); color: #8b5cf6; font-size: 14px; width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; border-radius: 8px;">
-          <i class="fa-solid fa-certificate"></i></div>
-        <div style="text-align: left;">
-          <div class="sec-title" style="font-size: 13px; font-weight: 700; margin-bottom: 2px;">Platform Authenticity Dossier</div>
-          <div class="bank-meta" style="font-size: 11px;">CBN guidelines, CAC, and NDPR credentials</div>
-        </div>
-      </div>
-      <i class="fa-solid fa-chevron-right text-slate-400 text-xs"></i>
-    </div>
-
-    <div class="stats-grid anim d5">
-      <div class="stat-box">
-        <div class="stat-icon" style="background:#ecfdf5;color:#10b981;"><i class="fa-solid fa-coins"></i></div>
-        <div class="stat-num" id="totalMined">0</div>
-        <div class="stat-label">Total Mined</div>
-      </div>
-      <div class="stat-box">
-        <div class="stat-icon" style="background:#eef2ff;color:#6366f1;"><i class="fa-solid fa-bolt"></i></div>
-        <div class="stat-num" id="miningPower" style="color:#6366f1;">1x</div>
-        <div class="stat-label">Power</div>
-      </div>
-      <div class="stat-box">
-        <div class="stat-icon" style="background:#fff7ed;color:#f59e0b;"><i class="fa-solid fa-fire"></i></div>
-        <div class="stat-num" id="streakCount" style="color:#f59e0b;">0</div>
-        <div class="stat-label">Streak</div>
-      </div>
-    </div>
-
-    <div class="sec-title anim d5" id="referralTitle">
-      <i class="fa-solid fa-share-nodes text-[#10b981]"></i> Referral Program
-    </div>
-    <div class="card anim d5 mb-5 p-5 relative overflow-hidden" id="referralArea"
-      style="background: linear-gradient(135deg, rgba(16,185,129,0.03), rgba(99,102,241,0.03)); border: 1px solid rgba(16,185,129,0.15); border-radius: 20px;">
-      
-      <div style="font-size: 10px; font-weight: 800; text-transform: uppercase; color: #94a3b8; margin-bottom: 8px;">
-        Your Referral Link
-      </div>
-
-      <div class="flex items-center gap-2 bg-[#f8fafc] dark:bg-[#0f172a] p-2.5 rounded-xl border border-[#e2e8f0] dark:border-[#334155] mb-4">
-        <input type="text" id="referralLinkInput" readonly
-          class="flex-1 bg-transparent border-none outline-none text-xs font-bold font-mono text-[#10b981] dark:text-[#34d399]"
-          style="min-width: 0;" />
-        <button onclick="copyReferralLink()"
-          style="background: linear-gradient(135deg, #10b981, #34d399); border: none; width: 36px; height: 36px; border-radius: 10px; display: flex; align-items: center; justify-content: center; color: white; cursor: pointer; transition: transform 0.2s;"
-          class="hover:scale-105 active:scale-95">
-          <i class="fa-regular fa-copy" style="font-size: 16px;"></i>
-        </button>
-      </div>
-
-      <button onclick="copyReferralMessage()"
-        style="width: 100%; padding: 14px; border-radius: 50px; background: linear-gradient(135deg, #10b981, #3b82f6); border: none; color: white; font-size: 13px; font-weight: 800; cursor: pointer; transition: all 0.3s; display: flex; align-items: center; justify-content: center; gap: 8px; box-shadow: 0 4px 15px rgba(16,185,129,0.2);"
-        class="hover:scale-[1.02] active:scale-[0.98] mb-4">
-        <i class="fa-solid fa-copy"></i> Copy Link, Code & Message
-      </button>
-
-      <p style="font-size: 11px; color: #94a3b8; text-align: center; font-weight: 600; margin-bottom: 14px;">
-        Share with multiple friends 🚀
-      </p>
-
-      <div style="display: flex; justify-content: space-around; align-items: center; gap: 8px; flex-wrap: wrap;">
-        <a id="shareTelegram" href="#" target="_blank" style="display: flex; flex-direction: column; align-items: center; gap: 6px; text-decoration: none; cursor: pointer; min-width: 54px;">
-          <div style="width: 44px; height: 44px; border-radius: 50%; background: #0088cc; display: flex; align-items: center; justify-content: center; color: white; font-size: 20px; box-shadow: 0 4px 10px rgba(0,136,204,0.3);">
-            <i class="fa-brands fa-telegram"></i>
-          </div>
-          <span style="font-size: 9px; font-weight: 700; color: #64748b;">Telegram</span>
-        </a>
-        <a id="shareWhatsApp" href="#" target="_blank" style="display: flex; flex-direction: column; align-items: center; gap: 6px; text-decoration: none; cursor: pointer; min-width: 54px;">
-          <div style="width: 44px; height: 44px; border-radius: 50%; background: #25d366; display: flex; align-items: center; justify-content: center; color: white; font-size: 20px; box-shadow: 0 4px 10px rgba(37,211,102,0.3);">
-            <i class="fa-brands fa-whatsapp"></i>
-          </div>
-          <span style="font-size: 9px; font-weight: 700; color: #64748b;">WhatsApp</span>
-        </a>
-        <a id="shareInstagram" href="#" target="_blank" style="display: flex; flex-direction: column; align-items: center; gap: 6px; text-decoration: none; cursor: pointer; min-width: 54px;">
-          <div style="width: 44px; height: 44px; border-radius: 50%; background: linear-gradient(45deg, #f09433 0%, #e6683c 25%, #dc2743 50%, #cc2366 75%, #bc1888 100%); display: flex; align-items: center; justify-content: center; color: white; font-size: 20px; box-shadow: 0 4px 10px rgba(220,39,67,0.3);">
-            <i class="fa-brands fa-instagram"></i>
-          </div>
-          <span style="font-size: 9px; font-weight: 700; color: #64748b;">Instagram</span>
-        </a>
-        <a id="shareLinkedIn" href="#" target="_blank" style="display: flex; flex-direction: column; align-items: center; gap: 6px; text-decoration: none; cursor: pointer; min-width: 54px;">
-          <div style="width: 44px; height: 44px; border-radius: 50%; background: #0077b5; display: flex; align-items: center; justify-content: center; color: white; font-size: 20px; box-shadow: 0 4px 10px rgba(0,119,181,0.3);">
-            <i class="fa-brands fa-linkedin-in"></i>
-          </div>
-          <span style="font-size: 9px; font-weight: 700; color: #64748b;">LinkedIn</span>
-        </a>
-        <a id="shareTikTok" href="#" target="_blank" style="display: flex; flex-direction: column; align-items: center; gap: 6px; text-decoration: none; cursor: pointer; min-width: 54px;">
-          <div style="width: 44px; height: 44px; border-radius: 50%; background: #000000; display: flex; align-items: center; justify-content: center; color: white; font-size: 18px; box-shadow: 0 4px 10px rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.15);">
-            <i class="fa-brands fa-tiktok"></i>
-          </div>
-          <span style="font-size: 9px; font-weight: 700; color: #64748b;">TikTok</span>
-        </a>
-      </div>
-
-    </div>
-
-    <div class="sec-title anim d5" id="activityTitle"><i class="fa-solid fa-clock-rotate-left"></i> Recent Activity</div>
-    <div class="activity-list anim d5" id="activityList">
-      <div class="activity-item" style="justify-content:center;padding:20px 0;">
-        <p style="color:#94a3b8;font-size:13px;">No activity yet</p>
       </div>
     </div>
   </div>
-
-  <div id="socialJoinPopup" class="social-popup">
-    <button class="social-popup-close" onclick="dismissSocialPopup()"><i class="fa-solid fa-xmark"></i></button>
-    <div class="social-popup-content">
-      <div class="social-popup-icon" id="socialPopupIcon">
-        <i class="fa-brands fa-telegram"></i>
-      </div>
-      <div class="social-popup-info">
-        <h5 class="social-popup-title" id="socialPopupTitle">📢 Join Our Telegram Channel</h5>
-        <p class="social-popup-desc">Get exclusive updates, tips & bonus alerts. Don't miss out! 🚀</p>
-        <a href="#" target="_blank" class="social-popup-btn" id="socialPopupBtn">
-          <i class="fa-brands fa-telegram"></i> Join Now
-        </a>
-      </div>
-    </div>
-  </div>
-
-  <div class="toast" id="toast"><i class="fa-solid fa-circle-check"></i><span id="toastMsg">Done</span></div>
-
-  <div id="liveWithdrawalPopup"
-    style="position: fixed; top: 20px; left: 50%; transform: translate(-50%, -150px); z-index: 10000; display: flex; align-items: center; justify-content: space-between; gap: 12px; background: #1e293b; border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 16px; padding: 12px 16px; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5); transition: all 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275); pointer-events: none; max-width: 92%; width: 320px; opacity: 0;">
-    <div style="display: flex; align-items: center; gap: 12px;">
-      <div id="liveWithdrawalAvatar"
-        style="width: 40px; height: 40px; border-radius: 50%; background: linear-gradient(135deg, #3b82f6, #1d4ed8); display: flex; align-items: center; justify-content: center; color: #fff; font-weight: 800; font-size: 16px; flex-shrink: 0; text-transform: uppercase;">
-        M
-      </div>
-      <div style="text-align: left;">
-        <div style="font-size: 14px; font-weight: 800; color: #f8fafc;" id="liveWithdrawalUser">Mustafa</div>
-        <div style="font-size: 12px; font-weight: 500; color: #94a3b8;" id="liveWithdrawalAction">just withdrew ₦30,000</div>
-      </div>
-    </div>
-    <div style="background: rgba(16, 185, 129, 0.1); border: 1px solid rgba(16, 185, 129, 0.2); border-radius: 50px; padding: 4px 10px; font-size: 11px; font-weight: 700; color: #10b981; display: flex; align-items: center; gap: 4px; flex-shrink: 0;">
-      <span style="width: 6px; height: 6px; border-radius: 50%; background: #10b981;"></span>
-      Paid
-    </div>
-  </div>
-
-  <div class="bottom-nav">
-    <button class="nav-item active" onclick="window.location.href='dashboard.html'"><i class="fa-solid fa-house"></i>Home</button>
-    <button class="nav-item" onclick="window.location.href='upgrade.html'"><i class="fa-solid fa-rocket"></i>Upgrade</button>
-    <button class="nav-mid" onclick="window.location.href='tasks.html'"><i class="fa-solid fa-list-check"></i></button>
-    <button class="nav-item" onclick="window.location.href='about.html'"><i class="fa-solid fa-circle-info"></i>About</button>
-    <button class="nav-item" onclick="window.location.href='profile.html'"><i class="fa-solid fa-user"></i>Profile</button>
-  </div>
-  
-<!-- MODALS -->  <!-- ✅ Correct -->
-
-  <!-- VIDEO CHALLENGE MODAL -->
-  <div id="videoChallengeModal"
-    class="fixed inset-0 z-[1000] flex items-center justify-center bg-black/80 backdrop-blur-sm hidden"
-    style="transition: all 0.3s ease;">
-    <div class="w-[90%] max-w-[400px] bg-[#131a2e] border border-[#2c3b63] rounded-[28px] p-6 relative overflow-hidden"
-      style="box-shadow: 0 20px 50px rgba(0,0,0,0.5);">
-      <div class="absolute -top-20 -left-20 w-44 h-44 bg-violet-600/10 rounded-full blur-3xl"></div>
-      <div class="absolute -bottom-20 -right-20 w-44 h-44 bg-emerald-500/10 rounded-full blur-3xl"></div>
-
-      <div class="text-center relative z-10">
-        <div
-          class="w-16 h-16 mx-auto mb-4 rounded-2xl bg-gradient-to-br from-amber-400 to-amber-600 flex items-center justify-center text-white text-3xl shadow-lg shadow-amber-500/20">
-          <i class="fa-solid fa-video animate-pulse"></i>
-        </div>
-
-        <span
-          class="inline-block px-3 py-1 bg-amber-500/10 border border-amber-500/30 rounded-full text-[10px] font-extrabold text-amber-400 uppercase tracking-widest mb-3"
-          style="letter-spacing:1px;">
-          ₦500,000 Prize Pool
-        </span>
-
-        <h3 class="text-lg font-extrabold text-white mb-2 leading-tight">Video Testimony Challenge</h3>
-
-        <p class="text-xs text-[#94a3b8] leading-relaxed mb-6">
-          Record a professional video about 9jaCash and get rewarded instantly upon approval, with automated entry to
-          the ₦500,000 prize pool draw!
-        </p>
-
-        <div class="flex flex-col gap-2">
-          <button onclick="goToVideoChallenge()"
-            class="w-full py-3.5 bg-gradient-to-r from-violet-500 to-indigo-600 text-white font-extrabold rounded-2xl text-xs hover:opacity-90 active:scale-[0.98] transition-all flex items-center justify-center gap-2 border-none cursor-pointer">
-            <i class="fa-solid fa-rocket"></i> JOIN CHALLENGE &amp; WIN
-          </button>
-          <button onclick="dismissVideoChallenge()"
-            class="w-full py-3 bg-[#1c2642] text-[#94a3b8] font-bold rounded-2xl text-xs hover:bg-[#253054] transition-all border-none cursor-pointer">
-            Maybe Later
-          </button>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- MODALS (body level so they sit above all page layers) -->
-  <!-- Dedicated Notifications Modal -->
-  <div class="notifications-modal-overlay" id="notificationsOverlay" onclick="closeNotificationsModal(event)">
-    <div class="notifications-modal-content" onclick="event.stopPropagation()">
-      <div class="notifications-modal-header">
-        <div class="flex items-center gap-2">
-          <i class="fa-solid fa-bell text-[#6366f1] text-lg"></i>
-          <h3 class="font-extrabold text-base text-slate-900 dark:text-slate-100" style="margin:0;">Notifications</h3>
-          <span id="modalNotifBadge"
-            class="hidden text-[10px] bg-red-500 text-white font-extrabold px-1.5 py-0.5 rounded-full"
-            style="line-height: 1;">0</span>
-        </div>
-        <button class="close-modal-btn" onclick="closeNotificationsModal()">
-          <i class="fa-solid fa-xmark"></i>
-        </button>
-      </div>
-      <div class="notifications-modal-body" id="notificationsList">
-        <!-- Rendered notifications -->
-      </div>
-      <div class="notifications-modal-footer">
-        <button class="mark-read-btn" onclick="markAllNotificationsAsRead()">
-          <i class="fa-solid fa-check-double mr-1.5"></i> Mark all as read
-        </button>
-      </div>
-    </div>
-  </div>
-
-  <!-- CUSTOMER CARE SELECTION MODAL -->
-  <div id="customerCareModal" class="customer-care-modal-overlay" onclick="closeCustomerCareModal(event)"
-    style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.85); backdrop-filter:blur(10px); z-index:99999; align-items:center; justify-content:center;">
-    <div onclick="event.stopPropagation()"
-      style="background:linear-gradient(145deg, #111827, #0f172a); border:1px solid rgba(255,255,255,0.12); border-radius:24px; width:90%; max-width:400px; padding:28px 24px; text-align:center; box-shadow:0 25px 50px -12px rgba(0,0,0,0.7); position:relative;">
-      <button onclick="closeCustomerCareModal()"
-        style="position:absolute; top:16px; right:16px; background:rgba(255,255,255,0.08); border:none; color:#94a3b8; width:32px; height:32px; border-radius:50%; cursor:pointer; font-size:16px; display:flex; align-items:center; justify-content:center;">✕</button>
-
-      <div
-        style="width:64px; height:64px; margin:0 auto 16px auto; background:linear-gradient(135deg, #6366f1, #8b5cf6); border-radius:50%; display:flex; align-items:center; justify-content:center; box-shadow:0 0 25px rgba(99,102,241,0.5);">
-        <i class="fa-solid fa-headset" style="font-size:28px; color:white;"></i>
-      </div>
-
-      <h3 style="font-size:20px; font-weight:800; color:white; margin:0 0 6px 0;">Customer Care Support</h3>
-      <p style="font-size:13px; color:#94a3b8; margin:0 0 24px 0;">Select your preferred channel to connect with our
-        official support team:</p>
-
-      <div style="display:flex; flex-direction:column; gap:14px;">
-        <!-- WhatsApp Option -->
-        <a id="modalWhatsappBtn"
-          href="https://wa.me/2347071134122?text=Hello%209jaCash%20Support,%20I%20need%20assistance" target="_blank"
-          style="display:flex; align-items:center; gap:16px; background:linear-gradient(135deg, #128c7e, #25d366); color:white; text-decoration:none; padding:16px 20px; border-radius:16px; font-weight:700; font-size:15px; box-shadow:0 10px 20px rgba(37,211,102,0.25);">
-          <svg width="28" height="28" viewBox="0 0 24 24" fill="white" style="flex-shrink:0;">
-            <path
-              d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946.003-6.556 5.338-11.891 11.893-11.891 3.181.001 6.167 1.24 8.413 3.488 2.245 2.248 3.481 5.236 3.48 8.414-.003 6.557-5.338 11.892-11.893 11.892-1.99-.001-3.951-.5-5.688-1.448l-6.305 1.654zm6.597-3.807c1.676.995 3.276 1.591 5.392 1.592 5.448 0 9.886-4.434 9.889-9.885.002-5.462-4.415-9.89-9.881-9.892-5.452 0-9.887 4.434-9.889 9.884-.001 2.225.651 3.891 1.746 5.634l-1.157 4.228 4.305-1.127z" />
-          </svg>
-          <div style="text-align:left;">
-            <div style="font-size:15px; font-weight:800;">WhatsApp Support</div>
-            <div style="font-size:11px; opacity:0.85; font-weight:500;">Instant 24/7 Live Chat Assistance</div>
-          </div>
-        </a>
-
-        <!-- Telegram Option -->
-        <a id="modalTelegramBtn" href="https://t.me/New_9jacash_support" target="_blank"
-          style="display:flex; align-items:center; gap:16px; background:linear-gradient(135deg, #0088cc, #229ed9); color:white; text-decoration:none; padding:16px 20px; border-radius:16px; font-weight:700; font-size:15px; box-shadow:0 10px 20px rgba(0,136,204,0.25);">
-          <svg width="28" height="28" viewBox="0 0 24 24" fill="white" style="flex-shrink:0;">
-            <path
-              d="M12 0c-6.627 0-12 5.373-12 12s5.373 12 12 12 12-5.373 12-12-5.373-12-12-12zm5.894 8.221l-1.97 9.28c-.145.658-.537.818-1.084.508l-3-2.21-1.446 1.394c-.16.16-.295.295-.605.295l.213-3.053 5.56-5.023c.242-.213-.054-.333-.373-.121l-6.871 4.326-2.962-.924c-.643-.204-.657-.643.136-.953l11.57-4.461c.536-.196 1.006.128.832.941z" />
-          </svg>
-          <div style="text-align:left;">
-            <div style="font-size:15px; font-weight:800;">Telegram Support</div>
-            <div style="font-size:11px; opacity:0.85; font-weight:500;">Direct Support Chat</div>
-          </div>
-        </a>
-      </div>
-    </div>
-  </div>
-
-  <script src="script.js"></script>
 </body>
 
 </html>
