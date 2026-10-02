@@ -113,7 +113,7 @@ body.light-mode .toast-box{background:#1e293b;border-color:#334155;}
 .btn-secondary:hover{border-color:#6366f1;color:#818cf8;}
 
 /* BOTTOM NAV */
-.bottom-bar{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:480px;background:rgba(15,23,42,0.95);backdrop-filter:blur(20px);border-top:1px solid rgba(51,65,85,0.4);padding:10px 20px 28px;display:flex;justify-space-around;align-items:center;z-index:100;transition:all 0.3s ease;}
+.bottom-bar{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:480px;background:rgba(15,23,42,0.95);backdrop-filter:blur(20px);border-top:1px solid rgba(51,65,85,0.4);padding:10px 20px 28px;display:flex;justify-content:space-around;align-items:center;z-index:100;transition:all 0.3s ease;}
 .nav-link{display:flex;flex-direction:column;align-items:center;gap:4px;color:#64748b;text-decoration:none;font-size:10px;font-weight:600;transition:all 0.3s;border:none;background:none;cursor:pointer;}
 .nav-link i{font-size:20px;}
 .nav-link.active{color:#818cf8;}
@@ -470,7 +470,7 @@ function updateUI() {
     
     detailLimitRow.classList.remove("hidden");
     limitLabel.textContent = "Earning Limit";
-    detailLimit.textContent = formatMoney((flowData.earningLimit || 0) / 120) + " max";
+    detailLimit.textContent = formatMoney(flowData.earningLimit || 0) + " max";
     
     primaryBtn.innerHTML = '<i class="fa-solid fa-house"></i> Back to Dashboard';
     secondaryBtn.innerHTML = '<i class="fa-solid fa-rocket"></i> Upgrade Again';
@@ -478,7 +478,7 @@ function updateUI() {
     // Save plan to user data
     if (userData) {
       userData.plan = flowData.name;
-      userData.earningLimit = flowData.earningLimit ? flowData.earningLimit / 120 : 0;
+      userData.earningLimit = flowData.earningLimit;
       userData.planDate = new Date().toLocaleString();
       localStorage.setItem("9jaCashUser", JSON.stringify(userData));
       
@@ -486,7 +486,7 @@ function updateUI() {
       if (window._9jaCash && window._9jaCash.db && userData.phone) {
         window._9jaCash.db.collection("users").doc(userData.phone).update({
           plan: flowData.name,
-          earningLimit: flowData.earningLimit ? flowData.earningLimit / 120 : 0,
+          earningLimit: flowData.earningLimit,
           planDate: new Date().toLocaleString()
         }).catch(function(err){});
       }
@@ -504,7 +504,7 @@ function updateUI() {
     secondaryBtn.innerHTML = '<i class="fa-solid fa-cart-shopping"></i> Make Purchase';
   }
 
-  // Update amounts (Received amount is rendered directly without dividing)
+  // Update amounts
   const formatted = formatMoney(amount);
   amountDisplay.innerHTML = formatted.includes(".") ? formatted.replace(/\.(\d+)$/, '<span>.$1</span>') : formatted + "<span>.00</span>";
   detailAmount.textContent = formatted;
@@ -538,7 +538,7 @@ function goSecondary() {
 function formatMoney(num) {
   if (!num) return "GH₵0";
   if (num >= 1000000) return "GH₵" + (num / 1000000).toFixed(2) + "M";
-  return "GH₵" + num.toLocaleString("en-GH");
+  return "GH₵" + num.toLocaleString("en-GH", { minimumFractionDigits: 0, maximumFractionDigits: 2 });
 }
 
 function showToast(msg) {
