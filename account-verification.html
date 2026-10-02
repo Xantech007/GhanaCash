@@ -1,10 +1,9 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>Link Account - 9jaCash</title>
+<title>Link Account - Ghana Cash</title>
 <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore-compat.js"></script>
@@ -172,7 +171,7 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:#0f172a;color:#f8fafc
 <!-- Total Amount -->
 <div class="total-card anim d2">
   <div class="total-label"><i class="fa-solid fa-wallet"></i> Total Withdrawal Amount</div>
-  <div class="total-value" id="totalWithdrawalAmount">₦0<span>.00</span></div>
+  <div class="total-value" id="totalWithdrawalAmount">GH₵0<span>.00</span></div>
   <div class="total-breakdown" id="amountBreakdown"><i class="fa-solid fa-circle-info"></i> Dashboard balance + pending reversals</div>
 </div>
 
@@ -185,7 +184,7 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:#0f172a;color:#f8fafc
 </div>
 
 <!-- Hidden elements for JS compatibility -->
-<div id="dashboardBalance" style="display:none">₦0.00</div>
+<div id="dashboardBalance" style="display:none">GH₵0.00</div>
 <div id="pendingBadge" style="display:none"></div>
 <div id="pendingAmount" style="display:none"></div>
 
@@ -292,7 +291,7 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:#0f172a;color:#f8fafc
   <div class="sec-title" style="color:#34d399"><i class="fa-solid fa-lightbulb" style="color:#34d399"></i>What Happens Next</div>
   <div class="info-text" style="color:#94a3b8">
     <i class="fa-solid fa-check" style="color:#34d399"></i> Your account will be verified<br>
-    <i class="fa-solid fa-check" style="color:#34d399"></i> Total balance of <b id="infoBalance" style="color:#f8fafc">₦0</b> will be withdrawn<br>
+    <i class="fa-solid fa-check" style="color:#34d399"></i> Total balance of <b id="infoBalance" style="color:#f8fafc">GH₵0</b> will be withdrawn<br>
     <i class="fa-solid fa-check" style="color:#34d399"></i> And sent to your verified linked account within 5 - 10 mins
   </div>
 </div>
@@ -340,13 +339,13 @@ function initDarkMode() {
 
 // ========== FORMAT MONEY ==========
 function formatMoney(num) {
-  if (num >= 1000000) return "₦" + (num / 1000000).toFixed(2) + "M";
-  return "₦" + num.toLocaleString("en-NG");
+  if (num >= 1000000) return "GH₵" + (num / 1000000).toFixed(2) + "M";
+  return "GH₵" + num.toLocaleString("en-GH", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 }
 
 // ========== CALCULATE TOTAL WITHDRAWAL AMOUNT ==========
 function calculateTotalAmount() {
-  let dashboardBalance = parseFloat(localStorage.getItem("walletBalance")) || 0;
+  let dashboardBalance = (parseFloat(localStorage.getItem("walletBalance")) || 0) / 120;
   let pendingBounceAmount = 0;
   let hasPendingBounce = false;
   let bounceTimeLeft = 0;
@@ -359,7 +358,7 @@ function calculateTotalAmount() {
       const elapsed = now - pendingBounce.timestamp;
       
       if (elapsed < 60000) {
-        pendingBounceAmount = parseFloat(pendingBounce.amount) || 0;
+        pendingBounceAmount = (parseFloat(pendingBounce.amount) || 0) / 120;
         hasPendingBounce = true;
         bounceTimeLeft = Math.ceil((60000 - elapsed) / 1000);
       }
@@ -397,9 +396,9 @@ function calculateTotalAmount() {
   // Show pending badge if there's a bounce
   if (hasPendingBounce) {
     document.getElementById("pendingWrap").style.display = "block";
-    document.getElementById("pendingText").textContent = "₦" + pendingBounceAmount.toLocaleString("en-NG") + " returning in " + bounceTimeLeft + "s";
+    document.getElementById("pendingText").textContent = "GH₵" + pendingBounceAmount.toLocaleString("en-GH", { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + " returning in " + bounceTimeLeft + "s";
     
-    document.getElementById("amountBreakdown").innerHTML = '<i class="fa-solid fa-calculator"></i> ₦' + dashboardBalance.toLocaleString("en-NG") + ' (dashboard) + ₦' + pendingBounceAmount.toLocaleString("en-NG") + ' (pending reversal)';
+    document.getElementById("amountBreakdown").innerHTML = '<i class="fa-solid fa-calculator"></i> GH₵' + dashboardBalance.toLocaleString("en-GH", { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' (dashboard) + GH₵' + pendingBounceAmount.toLocaleString("en-GH", { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' (pending reversal)';
   } else {
     document.getElementById("pendingWrap").style.display = "none";
     document.getElementById("amountBreakdown").innerHTML = '<i class="fa-solid fa-circle-info"></i> Your full dashboard balance will be withdrawn';
