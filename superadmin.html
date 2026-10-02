@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>9jaCash Admin HQ</title>
+<title>Ghana Cash Admin HQ</title>
 <script src="https://cdn.tailwindcss.com"></script>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
@@ -211,11 +211,11 @@ select.form-input{cursor:pointer;appearance:none;background-image:url("data:imag
   <div class="login-box">
     <div class="login-glow"></div>
     <div class="login-avatar"><i class="fa-solid fa-shield-halved"></i></div>
-    <div class="login-title">9jaCash HQ</div>
+    <div class="login-title">Ghana Cash HQ</div>
     <div class="login-sub">Admin Control Center</div>
     <div class="input-wrap">
       <label class="input-label">Email</label>
-      <input type="email" class="input-field" id="loginEmail" placeholder="admin@9jacash.com">
+      <input type="email" class="input-field" id="loginEmail" placeholder="admin@ghanacash.com">
     </div>
     <div class="input-wrap">
       <label class="input-label">Password</label>
@@ -242,7 +242,7 @@ select.form-input{cursor:pointer;appearance:none;background-image:url("data:imag
 
 <!-- Sidebar -->
 <div class="nav-sidebar">
-  <div class="nav-logo">9</div>
+  <div class="nav-logo">G</div>
   <div class="nav-item active" onclick="switchTab('overview',this)" title="Overview"><i class="fa-solid fa-chart-pie"></i></div>
   <div class="nav-item" onclick="switchTab('payments',this)" title="Payments"><i class="fa-solid fa-credit-card"></i></div>
   <div class="nav-item" onclick="switchTab('users',this)" title="Users"><i class="fa-solid fa-users"></i></div>
@@ -341,7 +341,7 @@ select.form-input{cursor:pointer;appearance:none;background-image:url("data:imag
       <div><div class="panel-title">User Warning</div><div class="panel-sub">Shown on payment page</div></div>
     </div>
     <div class="form-group" style="margin-bottom:0;">
-      <textarea id="noticeText" class="form-input" placeholder="Do NOT use Opay for transfers..."></textarea>
+      <textarea id="noticeText" class="form-input" placeholder="Do NOT use MTN MoMo for transfers..."></textarea>
     </div>
   </div>
 </div>
@@ -369,7 +369,7 @@ select.form-input{cursor:pointer;appearance:none;background-image:url("data:imag
       </div>
       <div class="form-group">
         <label class="form-label">Bank Name</label>
-        <input type="text" id="bankName" class="form-input" placeholder="GTBank, Access...">
+        <input type="text" id="bankName" class="form-input" placeholder="GCB Bank, Fidelity...">
       </div>
     </div>
     <div class="form-row">
@@ -378,8 +378,8 @@ select.form-input{cursor:pointer;appearance:none;background-image:url("data:imag
         <input type="text" id="accName" class="form-input" placeholder="Full name">
       </div>
       <div class="form-group">
-        <label class="form-label">Amount (₦)</label>
-        <input type="number" id="amount" class="form-input" placeholder="6100">
+        <label class="form-label">Amount (GH₵)</label>
+        <input type="number" id="amount" step="any" class="form-input" placeholder="50.83">
       </div>
     </div>
   </div>
@@ -396,7 +396,7 @@ select.form-input{cursor:pointer;appearance:none;background-image:url("data:imag
       </div>
       <div class="form-group">
         <label class="form-label">Bank Name</label>
-        <input type="text" id="feeBank" class="form-input" placeholder="GTBank, Access...">
+        <input type="text" id="feeBank" class="form-input" placeholder="GCB Bank, Fidelity...">
       </div>
     </div>
     <div class="form-row">
@@ -405,8 +405,8 @@ select.form-input{cursor:pointer;appearance:none;background-image:url("data:imag
         <input type="text" id="feeAccName" class="form-input" placeholder="Full name">
       </div>
       <div class="form-group">
-        <label class="form-label">Fee Amount (₦)</label>
-        <input type="number" id="feeAmount" class="form-input" placeholder="12500">
+        <label class="form-label">Fee Amount (GH₵)</label>
+        <input type="number" id="feeAmount" step="any" class="form-input" placeholder="104.17">
       </div>
     </div>
   </div>
@@ -418,7 +418,7 @@ select.form-input{cursor:pointer;appearance:none;background-image:url("data:imag
     </div>
     <div class="form-group" style="margin-bottom:0;">
       <label class="form-label">Channel URL</label>
-      <input type="url" id="telegramLink" class="form-input" placeholder="https://t.me/9jaCashSupport">
+      <input type="url" id="telegramLink" class="form-input" placeholder="https://t.me/GhanaCashSupport">
     </div>
   </div>
 
@@ -468,7 +468,7 @@ select.form-input{cursor:pointer;appearance:none;background-image:url("data:imag
       <div><div class="panel-title">Find User</div><div class="panel-sub">Search by phone number</div></div>
     </div>
     <div style="display:flex;gap:10px;">
-      <input type="text" id="userSearchInput" class="form-input" placeholder="Enter phone number, e.g. 2347071134122" onkeydown="if(event.key==='Enter')searchUser()">
+      <input type="text" id="userSearchInput" class="form-input" placeholder="Enter phone number, e.g. 233241234567" onkeydown="if(event.key==='Enter')searchUser()">
       <button class="save-btn" style="width:auto;margin:0;padding:0 22px;" onclick="searchUser()"><i class="fa-solid fa-magnifying-glass"></i></button>
     </div>
     <div id="userSearchStatus" style="font-size:12px;color:var(--text3);margin-top:10px;"></div>
@@ -516,8 +516,8 @@ select.form-input{cursor:pointer;appearance:none;background-image:url("data:imag
       <input type="email" id="ueuEmail" class="form-input" placeholder="user@example.com">
     </div>
     <div class="form-group">
-      <label class="form-label">Balance (₦)</label>
-      <input type="number" id="ueuBalance" class="form-input" placeholder="0">
+      <label class="form-label">Balance (GH₵)</label>
+      <input type="number" id="ueuBalance" step="any" class="form-input" placeholder="0">
     </div>
     <div class="form-group">
       <label class="form-label">Created At</label>
@@ -574,7 +574,7 @@ select.form-input{cursor:pointer;appearance:none;background-image:url("data:imag
 
     <div class="form-group">
       <label class="form-label">Title</label>
-      <input type="text" id="lvTitle" class="form-input" placeholder="e.g. How 9jaCash works">
+      <input type="text" id="lvTitle" class="form-input" placeholder="e.g. How Ghana Cash works">
     </div>
 
     <div class="form-row">
@@ -683,27 +683,27 @@ select.form-input{cursor:pointer;appearance:none;background-image:url("data:imag
       <div><div class="panel-title">Select Plan</div><div class="panel-sub">Choose which plan to generate key for</div></div>
     </div>
     <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:12px;margin-bottom:16px;">
-      <div class="plan-select-card" id="planBasic" onclick="selectPlan('Basic', 8550, 3)" data-plan="Basic" data-price="8550" data-limit="3">
+      <div class="plan-select-card" id="planBasic" onclick="selectPlan('Basic', 71.25, 3)" data-plan="Basic" data-price="71.25" data-limit="3">
         <div style="font-size:14px;font-weight:700;color:var(--text);">Basic Key</div>
-        <div style="font-size:20px;font-weight:800;color:var(--accent);margin-top:4px;">₦7,550</div>
+        <div style="font-size:20px;font-weight:800;color:var(--accent);margin-top:4px;">GH₵62.92</div>
         <div style="font-size:11px;color:var(--text3);margin-top:2px;">3 withdrawals/day</div>
         <div class="plan-check" style="position:absolute;top:10px;right:10px;width:24px;height:24px;border-radius:50%;background:var(--surface3);display:flex;align-items:center;justify-content:center;opacity:0;transition:all 0.3s;"><i class="fa-solid fa-check" style="color:var(--accent);font-size:12px;"></i></div>
       </div>
-      <div class="plan-select-card" id="planStandard" onclick="selectPlan('Standard', 15500, 5)" data-plan="Standard" data-price="15500" data-limit="5">
+      <div class="plan-select-card" id="planStandard" onclick="selectPlan('Standard', 129.17, 5)" data-plan="Standard" data-price="129.17" data-limit="5">
         <div style="font-size:14px;font-weight:700;color:var(--text);">Standard Key</div>
-        <div style="font-size:20px;font-weight:800;color:var(--accent);margin-top:4px;">₦15,500</div>
+        <div style="font-size:20px;font-weight:800;color:var(--accent);margin-top:4px;">GH₵129.17</div>
         <div style="font-size:11px;color:var(--text3);margin-top:2px;">5 withdrawals/day</div>
         <div class="plan-check" style="position:absolute;top:10px;right:10px;width:24px;height:24px;border-radius:50%;background:var(--surface3);display:flex;align-items:center;justify-content:center;opacity:0;transition:all 0.3s;"><i class="fa-solid fa-check" style="color:var(--accent);font-size:12px;"></i></div>
       </div>
-      <div class="plan-select-card" id="planPremium" onclick="selectPlan('Premium', 35000, 15)" data-plan="Premium" data-price="35000" data-limit="15">
+      <div class="plan-select-card" id="planPremium" onclick="selectPlan('Premium', 291.67, 15)" data-plan="Premium" data-price="291.67" data-limit="15">
         <div style="font-size:14px;font-weight:700;color:var(--text);">Premium Key</div>
-        <div style="font-size:20px;font-weight:800;color:var(--accent);margin-top:4px;">₦35,000</div>
+        <div style="font-size:20px;font-weight:800;color:var(--accent);margin-top:4px;">GH₵291.67</div>
         <div style="font-size:11px;color:var(--text3);margin-top:2px;">15 withdrawals/day</div>
         <div class="plan-check" style="position:absolute;top:10px;right:10px;width:24px;height:24px;border-radius:50%;background:var(--surface3);display:flex;align-items:center;justify-content:center;opacity:0;transition:all 0.3s;"><i class="fa-solid fa-check" style="color:var(--accent);font-size:12px;"></i></div>
       </div>
-      <div class="plan-select-card" id="planUnlimited" onclick="selectPlan('Unlimited', 75000, 999999)" data-plan="Unlimited" data-price="75000" data-limit="999999">
+      <div class="plan-select-card" id="planUnlimited" onclick="selectPlan('Unlimited', 625, 999999)" data-plan="Unlimited" data-price="625" data-limit="999999">
         <div style="font-size:14px;font-weight:700;color:var(--text);">Unlimited Key</div>
-        <div style="font-size:20px;font-weight:800;color:var(--accent);margin-top:4px;">₦75,000</div>
+        <div style="font-size:20px;font-weight:800;color:var(--accent);margin-top:4px;">GH₵625.00</div>
         <div style="font-size:11px;color:var(--text3);margin-top:2px;">Unlimited withdrawals</div>
         <div class="plan-check" style="position:absolute;top:10px;right:10px;width:24px;height:24px;border-radius:50%;background:var(--surface3);display:flex;align-items:center;justify-content:center;opacity:0;transition:all 0.3s;"><i class="fa-solid fa-check" style="color:var(--accent);font-size:12px;"></i></div>
       </div>
@@ -802,11 +802,11 @@ select.form-input{cursor:pointer;appearance:none;background-image:url("data:imag
     </div>
     <div class="form-group">
       <label class="form-label">Telegram Handle</label>
-      <input type="text" id="supportHandle" class="form-input" placeholder="@New_9jacash_support">
+      <input type="text" id="supportHandle" class="form-input" placeholder="@New_ghanacash_support">
     </div>
     <div class="form-group" style="margin-bottom:0;">
       <label class="form-label">WhatsApp Handle</label>
-      <input type="text" id="whatsappHandle" class="form-input" placeholder="+234 707 113 4122 or wa.me link">
+      <input type="text" id="whatsappHandle" class="form-input" placeholder="+233 24 123 4567 or wa.me link">
     </div>
   </div>
 </div>
@@ -823,8 +823,8 @@ select.form-input{cursor:pointer;appearance:none;background-image:url("data:imag
   <div class="preview-row"><span class="preview-key">Withdrawal</span><span class="preview-val" id="previewWithdrawal" style="color:var(--danger);">Pending</span></div>
   <div class="preview-row"><span class="preview-key">Payment</span><span class="preview-val" id="previewPayment" style="color:var(--danger);">Failed</span></div>
   <div class="preview-row"><span class="preview-key">Payout Key</span><span class="preview-val" id="previewPayoutKey" style="color:var(--accent);">Not set</span></div>
-  <div class="preview-row"><span class="preview-key">Main Amt</span><span class="preview-val" id="previewMainAmt" style="color:var(--accent);">₦—</span></div>
-  <div class="preview-row"><span class="preview-key">Fee Amt</span><span class="preview-val" id="previewFeeAmt" style="color:var(--warning);">₦—</span></div>
+  <div class="preview-row"><span class="preview-key">Main Amt</span><span class="preview-val" id="previewMainAmt" style="color:var(--accent);">GH₵—</span></div>
+  <div class="preview-row"><span class="preview-key">Fee Amt</span><span class="preview-val" id="previewFeeAmt" style="color:var(--warning);">GH₵—</span></div>
   <div class="preview-row"><span class="preview-key">Tasks</span><span class="preview-val" id="previewTasks" style="color:var(--purple);">0</span></div>
 </div>
 
@@ -861,16 +861,16 @@ const CATS=['tiktok','facebook','other'];
 const CAT_LABELS={tiktok:'TikTok',facebook:'Facebook',other:'Other'};
 const CAT_ICONS={tiktok:'fa-brands fa-tiktok',facebook:'fa-brands fa-facebook',other:'fa-solid fa-globe'};
 const DEFAULT_TASKS=[
-  {id:'t1',name:'Follow TikTok',cat:'tiktok',link:'',amt:500,hot:false},
-  {id:'t2',name:'Like TikTok',cat:'tiktok',link:'',amt:500,hot:false},
-  {id:'t3',name:'Share TikTok',cat:'tiktok',link:'',amt:500,hot:false},
-  {id:'t4',name:'Like Facebook',cat:'facebook',link:'',amt:500,hot:false},
-  {id:'t5',name:'Share Facebook',cat:'facebook',link:'',amt:500,hot:false},
-  {id:'t6',name:'Comment FB',cat:'facebook',link:'',amt:500,hot:false},
-  {id:'t7',name:'Join FB Group',cat:'facebook',link:'',amt:500,hot:false},
-  {id:'t8',name:'Watch YouTube',cat:'other',link:'',amt:500,hot:false},
-  {id:'t9',name:'Subscribe',cat:'other',link:'',amt:500,hot:false},
-  {id:'t10',name:'Download App',cat:'other',link:'',amt:500,hot:false}
+  {id:'t1',name:'Follow TikTok',cat:'tiktok',link:'',amt:4.17,hot:false},
+  {id:'t2',name:'Like TikTok',cat:'tiktok',link:'',amt:4.17,hot:false},
+  {id:'t3',name:'Share TikTok',cat:'tiktok',link:'',amt:4.17,hot:false},
+  {id:'t4',name:'Like Facebook',cat:'facebook',link:'',amt:4.17,hot:false},
+  {id:'t5',name:'Share Facebook',cat:'facebook',link:'',amt:4.17,hot:false},
+  {id:'t6',name:'Comment FB',cat:'facebook',link:'',amt:4.17,hot:false},
+  {id:'t7',name:'Join FB Group',cat:'facebook',link:'',amt:4.17,hot:false},
+  {id:'t8',name:'Watch YouTube',cat:'other',link:'',amt:4.17,hot:false},
+  {id:'t9',name:'Subscribe',cat:'other',link:'',amt:4.17,hot:false},
+  {id:'t10',name:'Download App',cat:'other',link:'',amt:4.17,hot:false}
 ];
 
 // ========== AUTH ==========
@@ -987,7 +987,7 @@ function selectPlan(name, price, limit) {
   
   selectedPlanData = { name, price, limit };
   document.getElementById('selectedPlanDisplay').textContent = name + ' Key';
-  document.getElementById('selectedPriceDisplay').textContent = '₦' + price.toLocaleString();
+  document.getElementById('selectedPriceDisplay').textContent = 'GH₵' + price.toLocaleString('en-GH',{minimumFractionDigits:2,maximumFractionDigits:2});
   document.getElementById('selectedLimitDisplay').textContent = limit === 999999 ? 'Unlimited' : limit + '/day';
   
   showToast(name + ' Key selected — ready to generate');
@@ -1014,7 +1014,7 @@ function generatePayoutKeyForPlan() {
   document.getElementById('generatedKeyBox').style.display = 'block';
   document.getElementById('currentKeyBox').style.display = 'none';
   document.getElementById('generatedKeyValue').textContent = key;
-  document.getElementById('generatedKeyLabel').textContent = 'Generated for ' + selectedPlanData.name + ' Key (₦' + selectedPlanData.price.toLocaleString() + ')';
+  document.getElementById('generatedKeyLabel').textContent = 'Generated for ' + selectedPlanData.name + ' Key (GH₵' + selectedPlanData.price.toLocaleString('en-GH',{minimumFractionDigits:2,maximumFractionDigits:2}) + ')';
   
   document.getElementById('payoutKeyInput').value = key;
   
@@ -1081,7 +1081,7 @@ function renderTasks(){
   tasks.forEach((t,i)=>{
     const div=document.createElement('div');
     div.className='task-card'+(t.hot?' hot':'');
-    div.innerHTML='<div class="task-top"><div style="display:flex;align-items:center;gap:10px;"><div class="task-num">'+(i+1)+'</div><input type="text" class="form-input" style="padding:8px 12px;font-size:13px;min-width:160px;" value="'+t.name+'" onchange="updateTask('+i+',\'name\',this.value)" placeholder="Task name"></div><div class="task-actions"><button class="task-btn-sm fire" onclick="toggleHot('+i+')" title="Hot"><i class="fa-solid fa-fire" style="color:'+(t.hot?'var(--warning)':'var(--text3)')+'"></i></button><button class="task-btn-sm" onclick="deleteTask('+i+')" title="Delete"><i class="fa-solid fa-trash"></i></button></div></div><div class="task-grid-inner"><div class="task-field"><label class="form-label">Category</label><select class="form-input" onchange="updateTask('+i+',\'cat\',this.value)">'+CATS.map(c=>'<option value="'+c+'"'+(t.cat===c?' selected':'')+'>'+CAT_LABELS[c]+'</option>').join('')+'</select></div><div class="task-field"><label class="form-label">Amount</label><input type="number" class="form-input" value="'+t.amt+'" onchange="updateTask('+i+',\'amt\',Number(this.value))" placeholder="500"></div><div class="task-field"><label class="form-label">Link</label><input type="url" class="form-input" value="'+t.link+'" onchange="updateTask('+i+',\'link\',this.value)" placeholder="https://..."></div></div><span class="task-tag tag-'+t.cat+'"><i class="'+CAT_ICONS[t.cat]+'"></i> '+CAT_LABELS[t.cat]+'</span>';
+    div.innerHTML='<div class="task-top"><div style="display:flex;align-items:center;gap:10px;"><div class="task-num">'+(i+1)+'</div><input type="text" class="form-input" style="padding:8px 12px;font-size:13px;min-width:160px;" value="'+t.name+'" onchange="updateTask('+i+',\'name\',this.value)" placeholder="Task name"></div><div class="task-actions"><button class="task-btn-sm fire" onclick="toggleHot('+i+')" title="Hot"><i class="fa-solid fa-fire" style="color:'+(t.hot?'var(--warning)':'var(--text3)')+'"></i></button><button class="task-btn-sm" onclick="deleteTask('+i+')" title="Delete"><i class="fa-solid fa-trash"></i></button></div></div><div class="task-grid-inner"><div class="task-field"><label class="form-label">Category</label><select class="form-input" onchange="updateTask('+i+',\'cat\',this.value)">'+CATS.map(c=>'<option value="'+c+'"'+(t.cat===c?' selected':'')+'>'+CAT_LABELS[c]+'</option>').join('')+'</select></div><div class="task-field"><label class="form-label">Amount</label><input type="number" step="any" class="form-input" value="'+t.amt+'" onchange="updateTask('+i+',\'amt\',Number(this.value))" placeholder="4.17"></div><div class="task-field"><label class="form-label">Link</label><input type="url" class="form-input" value="'+t.link+'" onchange="updateTask('+i+',\'link\',this.value)" placeholder="https://..."></div></div><span class="task-tag tag-'+t.cat+'"><i class="'+CAT_ICONS[t.cat]+'"></i> '+CAT_LABELS[t.cat]+'</span>';
     el.appendChild(div);
   });
   updateTaskBtn();
@@ -1097,7 +1097,7 @@ function deleteTask(i){
 }
 function addNewTask(){
   if(tasks.length>=MAX_TASKS){showToast('Max '+MAX_TASKS,'error');return;}
-  tasks.push({id:'t'+Date.now(),name:'New Task',cat:CATS[Math.floor(Math.random()*3)],link:'',amt:500,hot:false});
+  tasks.push({id:'t'+Date.now(),name:'New Task',cat:CATS[Math.floor(Math.random()*3)],link:'',amt:4.17,hot:false});
   renderTasks();showToast('Task added');
 }
 function updateTaskBtn(){
@@ -1139,7 +1139,7 @@ async function loadData(){
     document.getElementById('feeAccNumber').value=fee.accNumber||'';
     document.getElementById('feeBank').value=fee.bank||'';
     document.getElementById('feeAccName').value=fee.accName||'';
-    document.getElementById('feeAmount').value=fee.amount||'12500';
+    document.getElementById('feeAmount').value=fee.amount||'104.17';
     
     wdSuccess=wdData.success===true;updateWdToggleUI();
     pmSuccess=pmData.success===true;updatePmToggleUI();
@@ -1215,8 +1215,8 @@ function updatePmToggleUI(){
 function updatePreview(){
   const p={amount:document.getElementById('amount').value};
   const f={amount:document.getElementById('feeAmount').value};
-  document.getElementById('previewMainAmt').textContent=p.amount?'₦'+Number(p.amount).toLocaleString():'₦—';
-  document.getElementById('previewFeeAmt').textContent=f.amount?'₦'+Number(f.amount).toLocaleString():'₦—';
+  document.getElementById('previewMainAmt').textContent=p.amount?'GH₵'+Number(p.amount).toLocaleString():'GH₵—';
+  document.getElementById('previewFeeAmt').textContent=f.amount?'GH₵'+Number(f.amount).toLocaleString():'GH₵—';
 }
 
 // ========== SAVE ALL ==========
@@ -1231,7 +1231,7 @@ async function saveAll(){
   const wd={success:wdSuccess,updatedAt:new Date().toISOString()};
   const pm={success:pmSuccess,updatedAt:new Date().toISOString()};
   const keyD={currentKey:payoutKey,history:keyHistory,updatedAt:new Date().toISOString()};
-  const redir={successPrimaryRedirect:document.getElementById('successPrimary').value.trim()||'dashboard.html',successSecondaryRedirect:document.getElementById('successSecondary').value.trim()||'buy.html',successDelay:Number(document.getElementById('successDelay').value)||2000,successShowConfetti:true,successMessage:'Your payment has been confirmed',failedRetryRedirect:document.getElementById('failedRetry').value.trim()||'payment.html',failedDashboardRedirect:document.getElementById('failedDashboard').value.trim()||'dashboard.html',failedRetryLabel:'Retry Payment',failedDashboardLabel:'Back to Dashboard',failedMessage:'We could not confirm your payment. Please check your details and try again.',failedSupportHandle:document.getElementById('supportHandle').value.trim()||'@New_9jacash_support',whatsappHandle:document.getElementById('whatsappHandle').value.trim(),failedShowSenderDetails:true,updatedAt:new Date().toISOString()};
+  const redir={successPrimaryRedirect:document.getElementById('successPrimary').value.trim()||'dashboard.html',successSecondaryRedirect:document.getElementById('successSecondary').value.trim()||'buy.html',successDelay:Number(document.getElementById('successDelay').value)||2000,successShowConfetti:true,successMessage:'Your payment has been confirmed',failedRetryRedirect:document.getElementById('failedRetry').value.trim()||'payment.html',failedDashboardRedirect:document.getElementById('failedDashboard').value.trim()||'dashboard.html',failedRetryLabel:'Retry Payment',failedDashboardLabel:'Back to Dashboard',failedMessage:'We could not confirm your payment. Please check your details and try again.',failedSupportHandle:document.getElementById('supportHandle').value.trim()||'@New_ghanacash_support',whatsappHandle:document.getElementById('whatsappHandle').value.trim(),failedShowSenderDetails:true,updatedAt:new Date().toISOString()};
   
   if(pay.accNumber&&pay.accNumber.length!==10){showToast('Main account: 10 digits','error');return;}
   if(fee.accNumber&&fee.accNumber.length!==10){showToast('Fee account: 10 digits','error');return;}
@@ -1271,7 +1271,7 @@ function fmtUserDate(v){
 
 function fmtBalance(v){
   const n=Number(v)||0;
-  return '₦'+n.toLocaleString('en-NG');
+  return 'GH₵'+n.toLocaleString('en-GH');
 }
 
 async function loadUserTotalCount(){
@@ -1554,7 +1554,7 @@ function buildUploadListItem(id,data){
 
   const name=(data.userName||'Unnamed').replace(/</g,'&lt;');
   const sub=isReceipt?(data.userPhone||'—'):(data.phone||id);
-  const rightLabel=isReceipt?('₦'+(Number(data.amount)||0).toLocaleString('en-NG')):fmtUploadDate(data.submittedAt);
+  const rightLabel=isReceipt?('GH₵'+(Number(data.amount)||0).toLocaleString('en-GH')):fmtUploadDate(data.submittedAt);
   const status=data.status||'pending';
 
   el.innerHTML=`
@@ -1599,7 +1599,7 @@ function openUploadDetail(id,data){
       ['Phone',data.userPhone||'—'],
       ['Type',data.type||data.flowType||'—'],
       ['Plan',data.plan||'—'],
-      ['Amount','₦'+(Number(data.amount)||0).toLocaleString('en-NG')],
+      ['Amount','GH₵'+(Number(data.amount)||0).toLocaleString('en-GH')],
       ['Payment Method',data.paymentMethod||'—'],
       ['Status',data.status||'pending'],
       ['Date',data.date||fmtUploadDate(data.createdAt)]
