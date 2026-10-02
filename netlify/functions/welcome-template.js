@@ -11,20 +11,20 @@ const TEMPLATE = `<!DOCTYPE html>
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Welcome to 9jaCash</title>
+  <title>Welcome to Ghana Cash</title>
 </head>
 <body style="margin: 0; padding: 0; background-color: #f4f4f4;">
   <div style="max-width: 600px; margin: 0 auto; background-color: #ffffff;">
     <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
       <tr>
         <td align="center" style="padding: 32px 32px 0 32px; font-family: Arial, Helvetica, sans-serif; text-align: center;">
-          <img src="{siteURL}/icon-192.png" alt="9jaCash" width="56" height="56" style="display: inline-block; border-radius: 12px; max-width: 100%; height: auto; border: 0;">
+          <img src="{siteURL}/icon-192.png" alt="Ghana Cash" width="56" height="56" style="display: inline-block; border-radius: 12px; max-width: 100%; height: auto; border: 0;">
         </td>
       </tr>
       <tr>
         <td style="padding: 16px 32px 8px 32px; font-family: Arial, Helvetica, sans-serif;">
           <p style="margin: 0 0 20px 0; font-size: 15px; color: #374151;">Hi {fullName},</p>
-          <h1 style="margin: 0 0 12px 0; font-size: 20px; color: #111827; font-family: Arial, Helvetica, sans-serif;">Welcome to 9jaCash</h1>
+          <h1 style="margin: 0 0 12px 0; font-size: 20px; color: #111827; font-family: Arial, Helvetica, sans-serif;">Welcome to Ghana Cash</h1>
           <p style="margin: 0 0 12px 0; font-size: 14px; line-height: 1.6; color: #374151; font-family: Arial, Helvetica, sans-serif;">Your account has been created successfully, and you're all set to start earning. As a welcome gift, we've credited a bonus straight to your wallet.</p>
 
           <div style="margin: 20px 0; border: 1px solid #10b981; background-color: #ecfdf5; border-radius: 10px; padding: 18px 20px;">
@@ -33,7 +33,7 @@ const TEMPLATE = `<!DOCTYPE html>
               <tbody>
                 <tr>
                   <td style="padding: 6px 0; font-size: 13px; color: #6b7280; font-family: Arial, Helvetica, sans-serif;">Welcome Bonus</td>
-                  <td align="right" style="padding: 6px 0; font-size: 13px; font-weight: 700; color: #111827; font-family: Arial, Helvetica, sans-serif;">₦10,000</td>
+                  <td align="right" style="padding: 6px 0; font-size: 13px; font-weight: 700; color: #111827; font-family: Arial, Helvetica, sans-serif;">GH₵83.33</td>
                 </tr>
                 <tr>
                   <td style="padding: 6px 0; font-size: 13px; color: #6b7280; font-family: Arial, Helvetica, sans-serif;">Status</td>
@@ -43,7 +43,7 @@ const TEMPLATE = `<!DOCTYPE html>
             </table>
           </div>
 
-          <p style="margin: 16px 0 0 0; font-size: 14px; line-height: 1.6; color: #374151; font-family: Arial, Helvetica, sans-serif;">Log in to your dashboard to explore your balance, daily rewards, and everything else 9jaCash has to offer.</p>
+          <p style="margin: 16px 0 0 0; font-size: 14px; line-height: 1.6; color: #374151; font-family: Arial, Helvetica, sans-serif;">Log in to your dashboard to explore your balance, daily rewards, and everything else Ghana Cash has to offer.</p>
 
           <table role="presentation" cellpadding="0" cellspacing="0" style="margin: 24px 0 4px 0;">
             <tbody>
@@ -59,8 +59,8 @@ const TEMPLATE = `<!DOCTYPE html>
       <tr>
         <td style="padding: 28px 32px 32px 32px; font-family: Arial, Helvetica, sans-serif;">
           <hr style="border: none; border-top: 1px solid #eaeaea; margin: 0 0 20px 0;">
-          <p style="margin: 0 0 6px 0; font-size: 12px; color: #9ca3af;">This is an automated message from 9jaCash. Please do not reply directly to this email.</p>
-          <p style="margin: 0; font-size: 12px; color: #9ca3af;">© 2026 9jaCash. All rights reserved.</p>
+          <p style="margin: 0 0 6px 0; font-size: 12px; color: #9ca3af;">This is an automated message from Ghana Cash. Please do not reply directly to this email.</p>
+          <p style="margin: 0; font-size: 12px; color: #9ca3af;">© 2026 Ghana Cash. All rights reserved.</p>
         </td>
       </tr>
     </table>
@@ -77,7 +77,7 @@ function buildWelcomeEmail(fullName, siteURL) {
 
 function buildWelcomeText(fullName, siteURL) {
   const base = String(siteURL || '').replace(/\/+$/, '');
-  return `Hi ${fullName},\n\nWelcome to 9jaCash! Your account has been created and a ₦10,000 welcome bonus has been added to your balance.\n\nGo to your dashboard: ${base}/dashboard\n\n© 2026 9jaCash`;
+  return `Hi ${fullName},\n\nWelcome to Ghana Cash! Your account has been created and a GH₵83.33 welcome bonus has been added to your balance.\n\nGo to your dashboard: ${base}/dashboard\n\n© 2026 Ghana Cash`;
 }
 
 module.exports = { buildWelcomeEmail, buildWelcomeText };
