@@ -412,7 +412,7 @@ function updateUI() {
 
   if (flowType === "payout_key" && flowData) {
     // ========== PAYOUT KEY FLOW ==========
-    amount = (flowData.price || 0) / 120;
+    amount = flowData.price || 0;
     pageTitle.textContent = "Payment Successful!";
     flowBadge.className = "badge-pill payout";
     flowBadge.innerHTML = '<i class="fa-solid fa-key"></i> <span>Payout Key</span>';
@@ -429,7 +429,7 @@ function updateUI() {
 
   } else if (flowType === "upgrade" && flowData) {
     // ========== UPGRADE FLOW ==========
-    amount = (flowData.amount || 0) / 120;
+    amount = flowData.amount || 0;
     pageTitle.textContent = "Upgrade Successful!";
     flowBadge.className = "badge-pill upgrade";
     flowBadge.innerHTML = '<i class="fa-solid fa-rocket"></i> <span>Plan Upgrade</span>';
@@ -438,7 +438,7 @@ function updateUI() {
     
     detailLimitRow.classList.remove("hidden");
     limitLabel.textContent = "Earning Limit";
-    detailLimit.textContent = formatMoney((flowData.earningLimit || 0) / 120) + " max";
+    detailLimit.textContent = formatMoney(flowData.earningLimit || 0) + " max";
     
     primaryBtn.innerHTML = '<i class="fa-solid fa-house"></i> Back to Dashboard';
     secondaryBtn.innerHTML = '<i class="fa-solid fa-rocket"></i> Upgrade Again';
@@ -506,7 +506,7 @@ function goSecondary() {
 function formatMoney(num) {
   if (!num) return "GH₵0";
   if (num >= 1000000) return "GH₵" + (num / 1000000).toFixed(2) + "M";
-  return "GH₵" + num.toLocaleString("en-GH", { minimumFractionDigits: 0, maximumFractionDigits: 2 });
+  return "GH₵" + num.toLocaleString("en-GH");
 }
 
 function showToast(msg) {
