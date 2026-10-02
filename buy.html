@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>Purchase Payout Key - 9jaCash</title>
+<title>Purchase Payout Key - Ghana Cash</title>
 
 <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-auth-compat.js"></script>
@@ -171,49 +171,49 @@ body.dark-mode .loader-overlay{background:rgba(15,23,42,0.95);}
 <div class="hero anim d1">
   <div class="hero-icon"><i class="fa-solid fa-key"></i></div>
   <div class="hero-title">Get Your <span>Payout Key</span></div>
-  <div class="hero-sub">Choose a plan and enter your bank details to receive your payout key after payment.</div>
+  <div class="hero-sub">Choose a plan and enter your bank or mobile money details to receive your payout key after payment.</div>
 </div>
 
 <!-- Basic Key - 3 withdrawals daily -->
-<div class="card price-card anim d2" onclick="selectPlan(this, 7550, 'Basic Key', 3)" data-plan="Basic Key" data-price="7550" data-limit="3">
+<div class="card price-card anim d2" onclick="selectPlan(this, 62.92, 'Basic Key', 3)" data-plan="Basic Key" data-price="62.92" data-limit="3">
   <div class="check-icon"><i class="fa-solid fa-check"></i></div>
   <div class="price-header">
     <div class="price-name">Basic Key</div>
-    <div class="price-value">₦7,550</div>
+    <div class="price-value">GH₵62.92</div>
   </div>
   <div class="price-desc">Valid for 30 days</div>
   <div class="withdrawal-badge"><i class="fa-solid fa-rotate"></i> 3 withdrawals daily</div>
 </div>
 
 <!-- Standard Key - 5 withdrawals daily -->
-<div class="card price-card popular anim d3" onclick="selectPlan(this, 15500, 'Standard Key', 5)" data-plan="Standard Key" data-price="15500" data-limit="5">
+<div class="card price-card popular anim d3" onclick="selectPlan(this, 129.17, 'Standard Key', 5)" data-plan="Standard Key" data-price="129.17" data-limit="5">
   <div class="popular-badge">Popular</div>
   <div class="check-icon"><i class="fa-solid fa-check"></i></div>
   <div class="price-header">
     <div class="price-name">Standard Key</div>
-    <div class="price-value">₦15,500</div>
+    <div class="price-value">GH₵129.17</div>
   </div>
   <div class="price-desc">Valid for 60 days</div>
   <div class="withdrawal-badge"><i class="fa-solid fa-rotate"></i> 5 withdrawals daily</div>
 </div>
 
 <!-- Premium Key - 15 withdrawals daily -->
-<div class="card price-card anim d4" onclick="selectPlan(this, 35000, 'Premium Key', 15)" data-plan="Premium Key" data-price="35000" data-limit="15">
+<div class="card price-card anim d4" onclick="selectPlan(this, 291.67, 'Premium Key', 15)" data-plan="Premium Key" data-price="291.67" data-limit="15">
   <div class="check-icon"><i class="fa-solid fa-check"></i></div>
   <div class="price-header">
     <div class="price-name">Premium Key</div>
-    <div class="price-value">₦35,000</div>
+    <div class="price-value">GH₵291.67</div>
   </div>
   <div class="price-desc">Valid for 90 days</div>
   <div class="withdrawal-badge"><i class="fa-solid fa-rotate"></i> 15 withdrawals daily</div>
 </div>
 
 <!-- Unlimited Key - unlimited withdrawals -->
-<div class="card price-card anim d5" onclick="selectPlan(this, 75000, 'Unlimited Key', 999999)" data-plan="Unlimited Key" data-price="75000" data-limit="999999">
+<div class="card price-card anim d5" onclick="selectPlan(this, 625, 'Unlimited Key', 999999)" data-plan="Unlimited Key" data-price="625" data-limit="999999">
   <div class="check-icon"><i class="fa-solid fa-check"></i></div>
   <div class="price-header">
     <div class="price-name">Unlimited Key</div>
-    <div class="price-value">₦75,000</div>
+    <div class="price-value">GH₵625.00</div>
   </div>
   <div class="price-desc">Lifetime access</div>
   <div class="withdrawal-badge"><i class="fa-solid fa-infinity"></i> Unlimited withdrawals</div>
@@ -222,7 +222,7 @@ body.dark-mode .loader-overlay{background:rgba(15,23,42,0.95);}
 <div class="divider anim d3">Payment Details</div>
 
 <div class="card anim d4">
-  <div class="card-title"><i class="fa-solid fa-building-columns"></i>Bank Account Details</div>
+  <div class="card-title"><i class="fa-solid fa-building-columns"></i>Bank / Mobile Money Details</div>
 
   <div class="note-box">
     <i class="fa-solid fa-circle-info"></i>
@@ -253,7 +253,7 @@ body.dark-mode .loader-overlay{background:rgba(15,23,42,0.95);}
     <div class="input-group">
       <label class="input-label">Select Bank</label>
       <select id="bankName" class="input-field" required>
-        <option value="" disabled selected>Choose your bank</option>
+        <option value="" disabled selected>Choose your bank or MoMo</option>
       </select>
     </div>
 
@@ -289,6 +289,10 @@ let selectedPlan = null;
 let selectedPrice = 0;
 let selectedLimit = 0;
 
+function fmt2(num) {
+  return Number(num).toLocaleString("en-GH", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+}
+
 function initDarkMode() {
   const isDark = localStorage.getItem("9jaCashDark") === "true";
   if (isDark) document.body.classList.add("dark-mode");
@@ -303,30 +307,19 @@ function selectPlan(el, price, planName, dailyLimit) {
   document.getElementById("selectedPlan").value = planName;
   document.getElementById("selectedPrice").value = price;
   document.getElementById("selectedLimit").value = dailyLimit;
-  showToast(planName + " selected - ₦" + price.toLocaleString() + " - " + (dailyLimit === 999999 ? "Unlimited" : dailyLimit + " daily") + " withdrawals");
+  showToast(planName + " selected - GH₵" + fmt2(price) + " - " + (dailyLimit === 999999 ? "Unlimited" : dailyLimit + " daily") + " withdrawals");
 }
 
 const banks = [
-  "Access Bank","Access Bank (Diamond)","ALAT by Wema","ASO Savings and Loans",
-  "Bowen Microfinance Bank","CEMCS Microfinance Bank","Citibank Nigeria",
-  "Coronation Merchant Bank","Ecobank Nigeria","Ekondo Microfinance Bank",
-  "Eyowo","Fidelity Bank","Firmus MFB","First Bank of Nigeria",
-  "First City Monument Bank","FSDH Merchant Bank","Globus Bank",
-  "Guaranty Trust Bank","Hackman Microfinance Bank","Hasal Microfinance Bank",
-  "Heritage Bank","Ibile Microfinance Bank","Infinity Microfinance Bank",
-  "Jaiz Bank","Kadpoly Microfinance Bank","Keystone Bank",
-  "Kuda Microfinance Bank","Lagos Building Investment Company","Links MFB",
-  "Lotus Bank","Mayfair MFB","Mint MFB","Moniepoint",
-  "NPF Microfinance Bank","Opay","Paga","PalmPay",
-  "Parallex Bank","Parkway - ReadyCash","Paycom",
-  "Petra Microfinance Bank","Polaris Bank","PremiumTrust Bank",
-  "Providus Bank","QuickFund MFB","Rand Merchant Bank",
-  "Rubies Bank","Signature Bank","Sparkle Bank",
-  "Stanbic IBTC Bank","Standard Chartered Bank","Sterling Bank",
-  "SunTrust Bank","TAJBank","Tanadi Microfinance Bank",
-  "Titan Trust Bank","U&C Microfinance Bank","Union Bank of Nigeria",
-  "United Bank for Africa","Unity Bank","VFD Microfinance Bank",
-  "Wema Bank","Zenith Bank","9 Payment Service Bank"
+  "MTN Mobile Money","Telecel Cash","AirtelTigo Money",
+  "Absa Bank Ghana","Access Bank Ghana","Agricultural Development Bank (ADB)",
+  "Bank of Africa Ghana","CalBank","Consolidated Bank Ghana (CBG)",
+  "Ecobank Ghana","FBNBank Ghana","Fidelity Bank Ghana",
+  "First National Bank Ghana","GCB Bank","Guaranty Trust Bank (Ghana)",
+  "National Investment Bank (NIB)","OmniBSIC Bank","Prudential Bank",
+  "Republic Bank Ghana","Société Générale Ghana","Stanbic Bank Ghana",
+  "Standard Chartered Bank Ghana","United Bank for Africa (UBA) Ghana",
+  "Universal Merchant Bank (UMB)","Zenith Bank Ghana"
 ];
 
 const select = document.getElementById("bankName");
