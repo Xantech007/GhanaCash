@@ -1,7 +1,7 @@
 {
-  "name": "9jaCash",
-  "short_name": "9jaCash",
-  "description": "9jaCash — earn, save and cash out.",
+  "name": "Ghana Cash",
+  "short_name": "Ghana Cash",
+  "description": "ghana Cash — earn, save and cash out.",
   "start_url": "index.html",
   "scope": ".",
   "display": "standalone",
