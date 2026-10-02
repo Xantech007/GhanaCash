@@ -1,5 +1,5 @@
 // ============================================================
-//  9jaCash — MAIL CONFIG  (edit this file to change SMTP settings)
+//  Ghana Cash — MAIL CONFIG  (edit this file to change SMTP settings)
 // ============================================================
 //  Lives on the server side (Netlify function), so it is never
 //  sent to the browser.
@@ -26,13 +26,13 @@ module.exports = {
   },
 
   from: {
-    name: '9jaCash',
+    name: 'Ghana Cash',
     address: process.env.MAIL_FROM_ADDRESS || process.env.SMTP_USER || 'your-email@gmail.com'
   },
 
-  subject: 'Welcome to 9jaCash 🎉',
+  subject: 'Welcome to Ghana Cash 🎉',
 
   // Website base URL used for the dashboard button and logo in the email.
   // Leave blank to auto-use your Netlify site URL.
-  siteURL: '' // e.g. 'https://9jacash.com'
+  siteURL: '' // e.g. 'https://ghanacash.com'
 };
