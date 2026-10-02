@@ -33,11 +33,11 @@ let secondsLeft = CLAIM_INTERVAL;
 let telegramLink = "https://t.me/apex_customercare";
 
 const TUTORIAL_STEPS = [
-  { id: "mineBtn", title: "Start Mining", desc: "Tap the Mine button to earn your first ₦30,000. Mining runs daily!", position: "bottom" },
+  { id: "mineBtn", title: "Start Mining", desc: "Tap the Mine button to earn your first ₵30,000. Mining runs daily!", position: "bottom" },
   { id: "withdrawBtn", title: "Withdraw Cash", desc: "Tap Withdraw to cash out your earnings to your linked bank account.", position: "bottom" },
   { id: "tasksBtn", title: "Complete Tasks", desc: "Visit the Tasks page to earn extra cash by completing simple social media tasks.", position: "bottom" },
   { id: "eyeBtn", title: "Hide Balance", desc: "Tap the eye icon anytime to hide or show your balance for privacy.", position: "bottom" },
-  { id: "claimArea", title: "Claim Every Minute", desc: "Tap Claim every 60 seconds to collect ₦2,000 free cash! Up to 50 times daily.", position: "top" },
+  { id: "claimArea", title: "Claim Every Minute", desc: "Tap Claim every 60 seconds to collect ₵2,000 free cash! Up to 50 times daily.", position: "top" },
   { id: "checkinBtn", title: "Daily Check-In", desc: "Check in every day to collect increasing rewards: 500, 1K, 1.5K, 2K, 3K, 5K, 10K!", position: "top" }
 ];
 let currentTutorialStep = 0;
@@ -289,12 +289,12 @@ function executeBounce() {
       Swal.fire({
         icon: "warning",
         title: "Withdrawal Failed",
-        html: '<p style="color:#64748b;">Your withdrawal of <b>₦' + amount.toLocaleString() + '</b> was returned.</p><p style="color:#64748b;margin-top:8px;">Reason: <b>Linked bank account not verified</b></p>',
+        html: '<p style="color:#64748b;">Your withdrawal of <b>₵' + amount.toLocaleString() + '</b> was returned.</p><p style="color:#64748b;margin-top:8px;">Reason: <b>Linked bank account not verified</b></p>',
         confirmButtonText: "Verify Account",
         confirmButtonColor: "#ef4444"
       }).then(function (r) { if (r.isConfirmed) { verifyBankLink(); } });
     } else {
-      alert("Withdrawal Failed\nYour withdrawal of ₦" + amount.toLocaleString() + " was returned.");
+      alert("Withdrawal Failed\nYour withdrawal of ₵" + amount.toLocaleString() + " was returned.");
       verifyBankLink();
     }
     isBouncing = false;
@@ -326,7 +326,7 @@ function checkPendingBounceOnLoad() {
 
 function maskNum(num) { if (!num || num.length < 4) return "****"; return "**** " + num.slice(-4); }
 
-function formatMoney(num) { return "₦" + Number(num || 0).toLocaleString("en-NG"); }
+function formatMoney(num) { return "₵" + Number(num || 0).toLocaleString("en-NG"); }
 
 function updateBalance() {
   const el = document.getElementById("walletBalance");
@@ -415,11 +415,11 @@ function doCheckin() {
     Swal.fire({
       icon: "success",
       title: "Day " + checkinData.claimedDays.length + " Complete!",
-      text: "+₦" + amount.toLocaleString() + " added to your balance",
+      text: "+₵" + amount.toLocaleString() + " added to your balance",
       confirmButtonColor: "#6366f1"
     });
   } else {
-    showToast("Checked in! +₦" + amount.toLocaleString());
+    showToast("Checked in! +₵" + amount.toLocaleString());
   }
 }
 
@@ -436,11 +436,11 @@ function startMining() {
     Swal.fire({
       icon: 'success',
       title: 'Mining Successful!',
-      text: 'You mined ₦' + minedAmount.toLocaleString() + ' today!',
+      text: 'You mined ₵' + minedAmount.toLocaleString() + ' today!',
       confirmButtonColor: '#6366f1'
     });
   } else {
-    showToast("Mined +₦" + minedAmount.toLocaleString());
+    showToast("Mined +₵" + minedAmount.toLocaleString());
   }
 }
 
@@ -511,7 +511,7 @@ function doClaim() {
 
   secondsLeft = CLAIM_INTERVAL;
   startClaimTimer();
-  showToast("Claimed +₦" + CLAIM_AMOUNT.toLocaleString());
+  showToast("Claimed +₵" + CLAIM_AMOUNT.toLocaleString());
 }
 
 function editBank() {
@@ -679,7 +679,7 @@ function renderActivities() {
           <div class="act-title">${act.title}</div>
           <div class="act-time">${act.time} ${act.status ? '• ' + act.status : ''}</div>
         </div>
-        <div class="${amountClass}">${sign}₦${Number(act.amount).toLocaleString()}</div>
+        <div class="${amountClass}">${sign}₵${Number(act.amount).toLocaleString()}</div>
       </div>
     `;
   }).join("");
@@ -696,7 +696,7 @@ function logout() {
 
 function sendBounceNotification(amount) {
   if ("Notification" in window && Notification.permission === "granted") {
-    new Notification("Withdrawal Returned", { body: "Your ₦" + amount.toLocaleString() + " withdrawal was returned." });
+    new Notification("Withdrawal Returned", { body: "Your ₵" + amount.toLocaleString() + " withdrawal was returned." });
   }
 }
 
