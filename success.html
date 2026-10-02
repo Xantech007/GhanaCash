@@ -1,10 +1,9 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>Withdrawal Successful - 9jaCash</title>
+<title>Withdrawal Successful - Ghana Cash</title>
 
 <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-auth-compat.js"></script>
@@ -99,36 +98,6 @@ body.dark-mode .swal2-html-container{color:#94a3b8 !important;}
 .btn:hover::before{left:100%;}
 .btn:active{transform:scale(0.97);}
 
-.btn-primary{background:linear-gradient(135deg,#6366f1,#8b5cf6);color:#fff;10b981,transparent);}
-
-.title{font-size:26px;font-weight:900;letter-spacing:-0.5px;margin-bottom:8px;transition:color 0.3s;}
-.subtitle{font-size:14px;color:#64748b;line-height:1.6;margin-bottom:24px;font-weight:500;transition:color 0.3s;}
-
-.amount-text{font-size:42px;font-weight:900;color:#10b981;letter-spacing:-2px;margin-bottom:8px;line-height:1;transition:color 0.3s;}
-.amount-text span{font-size:24px;color:#6366f1;}
-
-.status-badge{display:inline-flex;align-items:center;gap:8px;padding:8px 18px;border-radius:50px;background:#ecfdf5;border:1px solid #10b981;color:#10b981;font-size:13px;font-weight:700;margin-bottom:28px;transition:all 0.3s ease;}
-.status-badge i{font-size:12px;}
-
-.detail-card{background:#f8fafc;border:1px solid #f1f5f9;border-radius:16px;padding:16px;margin-bottom:10px;transition:all 0.3s ease;display:flex;align-items:center;justify-content:space-between;}
-.detail-card:last-child{margin-bottom:0;}
-.detail-label{font-size:11px;font-weight:700;color:#94a3b8;text-transform:uppercase;letter-spacing:1px;}
-.detail-value{font-size:14px;font-weight:800;color:#1e293b;display:flex;align-items:center;gap:8px;transition:color 0.3s;}
-.detail-value.green{color:#10b981;}
-.detail-value.mono{font-family:'Courier New',monospace;font-size:13px;}
-.detail-value i{font-size:12px;}
-
-.timer-box{background:#f8fafc;border:1px solid #f1f5f9;border-radius:16px;padding:20px;margin-bottom:20px;transition:all 0.3s ease;}
-.timer-label{font-size:11px;font-weight:700;color:#94a3b8;text-transform:uppercase;letter-spacing:1px;margin-bottom:10px;}
-.timer-value{font-size:28px;font-weight:900;color:#1e293b;letter-spacing:2px;transition:color 0.3s;}
-.timer-value span{color:#6366f1;}
-
-.actions{display:flex;flex-direction:column;gap:12px;margin-top:24px;}
-.btn{width:100%;padding:18px;border-radius:18px;font-size:16px;font-weight:800;border:none;cursor:pointer;transition:all 0.3s;display:flex;align-items:center;justify-content:center;gap:10px;position:relative;overflow:hidden;font-family:'Plus Jakarta Sans',sans-serif;}
-.btn::before{content:'';position:absolute;top:0;left:-100%;width:100%;height:100%;background:linear-gradient(90deg,transparent,rgba(255,255,255,0.2),transparent);transition:0.5s;}
-.btn:hover::before{left:100%;}
-.btn:active{transform:scale(0.97);}
-
 .btn-primary{background:linear-gradient(135deg,#6366f1,#8b5cf6);color:#fff;box-shadow:0 4px 20px rgba(99,102,241,0.2);}
 .btn-primary:hover{box-shadow:0 6px 24px rgba(99,102,241,0.3);}
 
@@ -176,8 +145,8 @@ body.dark-mode .swal2-html-container{color:#94a3b8 !important;}
       <i class="fa-solid fa-check"></i>
     </div>
     <div class="title">Withdrawal Successful!</div>
-    <div class="subtitle">Your funds are on the way to your bank account</div>
-    <div class="amount-text count-up" id="amountDisplay">₦0<span>.00</span></div>
+    <div class="subtitle">Your funds are on the way to your bank or mobile money account</div>
+    <div class="amount-text count-up" id="amountDisplay">GH₵0<span>.00</span></div>
     <div class="status-badge">
       <i class="fa-solid fa-circle-check"></i>
       <span id="statusText">Pending • Processing</span>
@@ -192,7 +161,7 @@ body.dark-mode .swal2-html-container{color:#94a3b8 !important;}
   <div class="success-card slide-up d4" style="padding:20px 24px;">
     <div class="detail-card">
       <div class="detail-label">Amount</div>
-      <div class="detail-value green" id="detailAmount">₦0</div>
+      <div class="detail-value green" id="detailAmount">GH₵0</div>
     </div>
     <div class="detail-card">
       <div class="detail-label">Bank</div>
@@ -226,7 +195,7 @@ body.dark-mode .swal2-html-container{color:#94a3b8 !important;}
   </div>
 
   <div class="footer slide-up d6">
-    9jaCash <span id="year"></span> • Secured Withdrawals
+    Ghana Cash <span id="year"></span> • Secured Withdrawals
   </div>
 </div>
 
@@ -267,12 +236,16 @@ function toggleTheme() {
 }
 
 // ========== FORMAT MONEY ==========
+function fmt2(n) {
+  return Number(n).toLocaleString("en-GH", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+}
+
 function formatMoney(num) {
-  if (!num && num !== 0) return "₦0";
+  if (!num && num !== 0) return "GH₵0";
   let n = parseFloat(num);
-  if (isNaN(n)) return "₦0";
-  if (n >= 1000000) return "₦" + (n / 1000000).toFixed(2) + "M";
-  return "₦" + n.toLocaleString("en-NG");
+  if (isNaN(n)) return "GH₵0";
+  if (n >= 1000000) return "GH₵" + (n / 1000000).toFixed(2) + "M";
+  return "GH₵" + fmt2(n);
 }
 
 // ========== GET TRANSACTION DATA ==========
@@ -302,7 +275,7 @@ function sendWithdrawalNotification(amount, bank, accountName) {
   const formattedAmount = typeof amount === 'string' ? amount : formatMoney(amount);
   
   try {
-    const notification = new Notification("9jaCash - Withdrawal Successful", {
+    const notification = new Notification("Ghana Cash - Withdrawal Successful", {
       body: "Withdrawal of " + formattedAmount + " has been successfully debited and is being credited to your (" + bank + ") account",
       icon: "9jaCash.png",
       badge: "9jaCash.png",
@@ -336,6 +309,7 @@ function updateUI() {
     return;
   }
 
+  // Amount comes from the saved withdrawal record - shown as received (not divided)
   let rawAmount = 0;
   if (typeof data.amount === 'string') {
     rawAmount = parseFloat(data.amount.replace(/[^\d.]/g, "")) || 0;
@@ -358,7 +332,7 @@ function updateUI() {
   document.getElementById("detailAccount").textContent = data.account || data.accNumber || "—";
   document.getElementById("detailName").textContent = data.name || data.accName || "—";
   document.getElementById("detailTxId").textContent = data.txId || 'TX-' + Date.now().toString(36).toUpperCase().slice(-8);
-  document.getElementById("detailDate").textContent = data.date || new Date().toLocaleString('en-NG', {
+  document.getElementById("detailDate").textContent = data.date || new Date().toLocaleString('en-GH', {
     day: 'numeric', month: 'short', year: 'numeric',
     hour: '2-digit', minute: '2-digit'
   });
@@ -404,7 +378,7 @@ function shareReceipt() {
   const data = getTxData();
   if (!data) return;
 
-  const text = "9jaCash Withdrawal Receipt\n" +
+  const text = "Ghana Cash Withdrawal Receipt\n" +
     "Amount: " + (data.amount || "—") + "\n" +
     "Bank: " + (data.bank || "—") + "\n" +
     "Account: " + (data.account || data.accNumber || "—") + "\n" +
@@ -414,7 +388,7 @@ function shareReceipt() {
 
   if (navigator.share) {
     navigator.share({
-      title: '9jaCash Withdrawal',
+      title: 'Ghana Cash Withdrawal',
       text: text
     });
   } else {
