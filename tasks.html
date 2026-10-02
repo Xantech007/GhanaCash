@@ -4,7 +4,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>9jaCash - Tasks</title>
+  <title>Ghana Cash - Tasks</title>
 
   <!-- Firebase & App Scripts -->
   <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-app-compat.js"></script>
@@ -776,7 +776,7 @@
       <div class="earn-icon"><i class="fa-solid fa-wallet"></i></div>
       <div class="earn-info">
         <div class="earn-label">Earned Today</div>
-        <div class="earn-value" id="totalEarned">₦0</div>
+        <div class="earn-value" id="totalEarned">GH₵0</div>
       </div>
       <div class="progress-ring">
         <svg width="56" height="56" viewBox="0 0 56 56">
@@ -1064,7 +1064,7 @@
         const iconClass = CAT_ICONS[catName] || CAT_ICONS.other;
         const imgClass = CAT_CLASSES[catName] || 'other';
         const taskLink = task.link || '';
-        const taskAmt = Number(task.amt || task.amount || 0);
+        const taskAmt = Number(task.amt || task.amount || 0) / 120;
 
         const div = document.createElement('div');
         div.className = `task-item ${isCompleted ? 'completed' : ''}`;
@@ -1076,10 +1076,10 @@
               <div class="task-main">
                 <div class="task-name">${escapeHtml(task.name)}</div>
                 <div class="task-tag ${task.hot ? 'hot' : ''}"><i class="fa-solid fa-${task.hot ? 'fire' : 'tag'}"></i> ${catName}</div>
-                <div class="task-reward"><i class="fa-solid fa-coins"></i> ₦${taskAmt.toLocaleString()}</div>
+                <div class="task-reward"><i class="fa-solid fa-coins"></i> GH₵${taskAmt.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</div>
               </div>
             </div>
-            <div class="task-desc">Complete this ${catName} task to earn ₦${taskAmt.toLocaleString()}. Tap the link to start.</div>
+            <div class="task-desc">Complete this ${catName} task to earn GH₵${taskAmt.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}. Tap the link to start.</div>
             ${taskLink ? `<a href="${escapeHtml(taskLink)}" target="_blank" class="task-link-btn" onclick="trackTask('${task.id}')"><i class="fa-solid fa-link"></i> ${escapeHtml(truncateLink(taskLink))}</a>` : ''}
             <div class="task-actions">
               ${!isCompleted ? `<button class="btn-start" onclick="startTask('${task.id}', '${escapeHtml(taskLink)}',${taskAmt})"><i class="fa-solid fa-play"></i> Start Task</button>` : ''}
@@ -1147,7 +1147,7 @@
     function showClaim(id, link, amount) {
       Swal.fire({
         title: 'Claim Reward? 💰',
-        html: `<p style="color:#64748b;">Did you finish the task?</p><div style="font-size:42px;font-weight:800;color:#667eea;margin:20px 0;">+₦${amount.toLocaleString()}</div>`,
+        html: `<p style="color:#64748b;">Did you finish the task?</p><div style="font-size:42px;font-weight:800;color:#667eea;margin:20px 0;">+GH₵${amount.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</div>`,
         showCancelButton: true,
         confirmButtonText: '✓ Yes, Claim',
         cancelButtonText: 'Not Yet',
@@ -1230,7 +1230,7 @@
       let tx = JSON.parse(localStorage.getItem('transactionHistory')) || [];
       tx.unshift({
         type: 'Task Reward',
-        amount: '₦' + amount.toLocaleString(),
+        amount: 'GH₵' + amount.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2}),
         status: 'Successful',
         date: new Date().toLocaleString()
       });
@@ -1238,12 +1238,12 @@
 
       renderTasks();
       updateStats();
-      showToast(`🎉 +₦${amount.toLocaleString()} claimed!`);
+      showToast(`🎉 +GH₵${amount.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})} claimed!`);
 
       Swal.fire({
         icon: 'success',
         title: 'Claimed! 🎉',
-        text: `+₦${amount.toLocaleString()} added`,
+        text: `+GH₵${amount.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})} added`,
         confirmButtonColor: '#667eea',
         timer: 2000,
         showConfirmButton: false,
@@ -1260,10 +1260,10 @@
     function updateStats() {
       const completed = completedTaskIds.length;
       const total = allTasks.length;
-      const earned = allTasks.filter(t => completedTaskIds.includes(t.id)).reduce((sum, t) => sum + Number(t.amt || t.amount || 0), 0);
+      const earned = allTasks.filter(t => completedTaskIds.includes(t.id)).reduce((sum, t) => sum + (Number(t.amt || t.amount || 0) / 120), 0);
       const percent = total > 0 ? Math.round((completed / total) * 100) : 0;
 
-      document.getElementById('totalEarned').textContent = '₦' + earned.toLocaleString();
+      document.getElementById('totalEarned').textContent = 'GH₵' + earned.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2});
       document.getElementById('progressText').textContent = percent + '%';
 
       const circle = document.getElementById('progressCircle');
@@ -1323,12 +1323,12 @@
       const popup = document.getElementById('liveWithdrawalPopup');
       if (!popup) return;
 
-      const names = ["Mustafa", "Emeka", "Amina", "Chidi", "Fatima", "Tunde", "Blessing", "Musa", "Ngozi", "Ibrahim", "Yetunde", "Olumide", "Halima", "Chioma", "Kelechi", "Abubakar", "Funmi", "Uche", "Bose", "Damilola", "Efe", "Ali", "Yusuf"];
+      const names = ["Kwame", "Kofi", "Ama", "Yaw", "Mensah", "Abena", "Akua", "Kojo", "Afia", "Adwoa", "Esi", "Kwaku", "Osei", "Appiah", "Boateng", "Owusu", "Gyamfi", "Agyemang", "Kwarteng", "Asante", "Baah", "Adu", "Sarpong"];
 
       function triggerPopup() {
         const randomName = names[Math.floor(Math.random() * names.length)];
         const randomK = Math.floor(Math.random() * (1000 - 50 + 1)) + 50;
-        const randomAmount = "₦" + (randomK * 1000).toLocaleString("en-NG");
+        const randomAmount = "GH₵" + ((randomK * 1000) / 120).toLocaleString("en-GH", {minimumFractionDigits: 2, maximumFractionDigits: 2});
         document.getElementById('liveWithdrawalText').textContent = `${randomName} successfully withdrew ${randomAmount}`;
 
         popup.style.transform = 'translate(-50%, 0)';
