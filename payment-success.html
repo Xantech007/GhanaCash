@@ -1,10 +1,9 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>Payment Successful - 9jaCash</title>
+<title>Payment Successful - Ghana Cash</title>
 
 <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-auth-compat.js"></script>
@@ -114,7 +113,7 @@ body.light-mode .toast-box{background:#1e293b;border-color:#334155;}
 .btn-secondary:hover{border-color:#6366f1;color:#818cf8;}
 
 /* BOTTOM NAV */
-.bottom-bar{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:480px;background:rgba(15,23,42,0.95);backdrop-filter:blur(20px);border-top:1px solid rgba(51,65,85,0.4);padding:10px 20px 28px;display:flex;justify-content:space-around;align-items:center;z-index:100;transition:all 0.3s ease;}
+.bottom-bar{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:480px;background:rgba(15,23,42,0.95);backdrop-filter:blur(20px);border-top:1px solid rgba(51,65,85,0.4);padding:10px 20px 28px;display:flex;justify-space-around;align-items:center;z-index:100;transition:all 0.3s ease;}
 .nav-link{display:flex;flex-direction:column;align-items:center;gap:4px;color:#64748b;text-decoration:none;font-size:10px;font-weight:600;transition:all 0.3s;border:none;background:none;cursor:pointer;}
 .nav-link i{font-size:20px;}
 .nav-link.active{color:#818cf8;}
@@ -170,7 +169,7 @@ body.light-mode .nav-mid{border-color:#f8fafc;}
   <div class="success-title" id="pageTitle">Upgrade Successful!</div>
   <div class="success-sub" id="successMessage">Your plan is now active and ready to use</div>
   
-  <div class="amount-text" id="amountDisplay">₦0<span>.00</span></div>
+  <div class="amount-text" id="amountDisplay">GH₵0<span>.00</span></div>
 </div>
 
 <!-- PAYOUT KEY — Only for buy.html flow -->
@@ -210,7 +209,7 @@ body.light-mode .nav-mid{border-color:#f8fafc;}
   </div>
   <div class="detail-surface">
     <div class="label-text">Amount Paid</div>
-    <div class="value-text green" id="detailAmount">₦0</div>
+    <div class="value-text green" id="detailAmount">GH₵0</div>
   </div>
   <div class="detail-surface hidden" id="detailLimitRow">
     <div class="label-text" id="limitLabel">Daily Limit</div>
@@ -471,7 +470,7 @@ function updateUI() {
     
     detailLimitRow.classList.remove("hidden");
     limitLabel.textContent = "Earning Limit";
-    detailLimit.textContent = formatMoney(flowData.earningLimit || 0) + " max";
+    detailLimit.textContent = formatMoney((flowData.earningLimit || 0) / 120) + " max";
     
     primaryBtn.innerHTML = '<i class="fa-solid fa-house"></i> Back to Dashboard';
     secondaryBtn.innerHTML = '<i class="fa-solid fa-rocket"></i> Upgrade Again';
@@ -479,7 +478,7 @@ function updateUI() {
     // Save plan to user data
     if (userData) {
       userData.plan = flowData.name;
-      userData.earningLimit = flowData.earningLimit;
+      userData.earningLimit = flowData.earningLimit ? flowData.earningLimit / 120 : 0;
       userData.planDate = new Date().toLocaleString();
       localStorage.setItem("9jaCashUser", JSON.stringify(userData));
       
@@ -487,7 +486,7 @@ function updateUI() {
       if (window._9jaCash && window._9jaCash.db && userData.phone) {
         window._9jaCash.db.collection("users").doc(userData.phone).update({
           plan: flowData.name,
-          earningLimit: flowData.earningLimit,
+          earningLimit: flowData.earningLimit ? flowData.earningLimit / 120 : 0,
           planDate: new Date().toLocaleString()
         }).catch(function(err){});
       }
@@ -505,12 +504,12 @@ function updateUI() {
     secondaryBtn.innerHTML = '<i class="fa-solid fa-cart-shopping"></i> Make Purchase';
   }
 
-  // Update amounts
+  // Update amounts (Received amount is rendered directly without dividing)
   const formatted = formatMoney(amount);
   amountDisplay.innerHTML = formatted.includes(".") ? formatted.replace(/\.(\d+)$/, '<span>.$1</span>') : formatted + "<span>.00</span>";
   detailAmount.textContent = formatted;
   detailTxId.textContent = txId;
-  detailDate.textContent = new Date().toLocaleString("en-NG", {
+  detailDate.textContent = new Date().toLocaleString("en-GH", {
     day: "numeric", month: "short", year: "numeric",
     hour: "2-digit", minute: "2-digit"
   });
@@ -537,9 +536,9 @@ function goSecondary() {
 
 // ========== HELPERS ==========
 function formatMoney(num) {
-  if (!num) return "₦0";
-  if (num >= 1000000) return "₦" + (num / 1000000).toFixed(2) + "M";
-  return "₦" + num.toLocaleString("en-NG");
+  if (!num) return "GH₵0";
+  if (num >= 1000000) return "GH₵" + (num / 1000000).toFixed(2) + "M";
+  return "GH₵" + num.toLocaleString("en-GH");
 }
 
 function showToast(msg) {
