@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>Payment - 9jaCash</title>
+<title>Payment - Ghana Cash</title>
 
 <!-- Firebase v8 Compatibility SDKs (Required before firebase.js) -->
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
@@ -209,7 +209,7 @@ body.light-mode .flow-badge{background:#f1f5f9;color:#64748b;border-color:#e2e8f
 
 <div class="amount-header anim d1">
   <div class="amount-label"><i class="fa-solid fa-lock" style="margin-right:6px;"></i>Amount Due</div>
-  <div class="amount-num" id="payAmountDisplay">₦0<span>.00</span></div>
+  <div class="amount-num" id="payAmountDisplay">GH₵0<span>.00</span></div>
   <div class="amount-hint" id="payHint">Loading payment details...</div>
   <div class="timer-pill" id="timerPill">
     <i class="fa-solid fa-hourglass-half"></i>
@@ -250,40 +250,40 @@ body.light-mode .flow-badge{background:#f1f5f9;color:#64748b;border-color:#e2e8f
 <div class="notice-box anim d2">
   <div class="notice-icon"><i class="fa-solid fa-triangle-exclamation"></i></div>
   <div class="notice-text">
-    <b>Do NOT use Opay</b> for transfers. Preferred: Moniepoint, Kuda, Palmpay, UBA, Access, Zenith, GTBank, Union Bank, First Bank.
+    <b>Preferred Transfers:</b> MTN Mobile Money, Vodafone Cash, AirtelTigo Money, GCB Bank, Ecobank, Stanbic Bank, Fidelity Bank, CalBank.
   </div>
 </div>
 
-<!-- CBN Regulated Payment Card -->
+<!-- Bank of Ghana Regulated Payment Card -->
 <div class="anim d2" style="background: rgba(16, 185, 129, 0.03); border: 1px solid rgba(16, 185, 129, 0.15); border-radius: 20px; padding: 20px; margin-bottom: 20px; text-align: left;">
   <div style="display: flex; gap: 14px; align-items: flex-start; margin-bottom: 12px;">
-    <div style="width: 44px; height: 44px; border-radius: 50%; background: linear-gradient(to right, #008751 33%, #ffffff 33%, #ffffff 66%, #008751 66%); border: 2px solid #008751; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 10px rgba(0,135,81,0.2); flex-shrink: 0;">
-      <i class="fa-solid fa-building-columns" style="font-size: 16px; color: #008751;"></i>
+    <div style="width: 44px; height: 44px; border-radius: 50%; background: linear-gradient(to right, #ce1126 33%, #fcd116 33%, #fcd116 66%, #006b3f 66%); border: 2px solid #006b3f; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 10px rgba(0,107,63,0.2); flex-shrink: 0;">
+      <i class="fa-solid fa-building-columns" style="font-size: 16px; color: #006b3f;"></i>
     </div>
     <div>
       <div style="font-size: 14px; font-weight: 800; color: #f8fafc; display: flex; align-items: center; gap: 6px;">
-        CBN Regulated Payment 
+        Bank of Ghana Regulated Payment 
         <i class="fa-solid fa-circle-check" style="color: #10b981; font-size: 14px;"></i>
       </div>
       <div style="font-size: 12px; color: #94a3b8; margin-top: 4px; line-height: 1.4;">
-        In compliance with <b>CBN</b> AML/KYC directives, payments are processed through verified Nigerian banks under the <b>NDIC</b> insurance scheme.
+        In compliance with <b>Bank of Ghana</b> AML/KYC directives, payments are processed through verified Ghanaian financial institutions and Mobile Money operators.
       </div>
     </div>
   </div>
   
   <div style="background: rgba(16, 185, 129, 0.06); border: 1px solid rgba(16, 185, 129, 0.12); border-radius: 12px; padding: 12px 14px; font-size: 12px; color: #34d399; line-height: 1.5; font-weight: 500; margin-bottom: 12px;">
-    Transfer exactly <span style="font-weight: 700; color: #10b981;" id="cbnCardAmount">₦0</span> to the account below. This payment confirmation unlocks the requested service.
+    Transfer exactly <span style="font-weight: 700; color: #10b981;" id="cbnCardAmount">GH₵0</span> to the account below. This payment confirmation unlocks the requested service.
   </div>
   
   <div style="display: flex; align-items: center; gap: 8px; font-size: 10px; font-weight: 700; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.5px;">
-    <span style="display: inline-flex; width: 14px; height: 10px; background: linear-gradient(to right, #008751 33%, #ffffff 33%, #ffffff 66%, #008751 66%); border-radius: 1px; border: 1px solid rgba(255,255,255,0.1);"></span>
-    Federal Republic of Nigeria • Authorised Platform
+    <span style="display: inline-flex; width: 14px; height: 10px; background: linear-gradient(to right, #ce1126 33%, #fcd116 33%, #fcd116 66%, #006b3f 66%); border-radius: 1px; border: 1px solid rgba(255,255,255,0.1);"></span>
+    Republic of Ghana • Authorised Platform
   </div>
 </div>
 
 <div class="tab-bar anim d3">
   <button class="tab-btn active" id="tabBank" onclick="switchTab('bank')">
-    <i class="fa-solid fa-building-columns"></i> Bank Transfer
+    <i class="fa-solid fa-building-columns"></i> Bank / MoMo Transfer
   </button>
   <button class="tab-btn" id="tabCrypto" onclick="switchTab('crypto')">
     <i class="fa-brands fa-bitcoin"></i> Crypto
@@ -292,14 +292,14 @@ body.light-mode .flow-badge{background:#f1f5f9;color:#64748b;border-color:#e2e8f
 
 <div class="card anim d4" id="panelBank">
   <div class="detail-card">
-    <div class="detail-label">Account Number</div>
+    <div class="detail-label">Account / MoMo Number</div>
     <div class="detail-value">
       <span id="accNumber">Loading...</span>
       <button class="copy-btn" onclick="copyText('accNumber')"><i class="fa-solid fa-copy"></i> Copy</button>
     </div>
   </div>
   <div class="detail-card">
-    <div class="detail-label">Bank Name</div>
+    <div class="detail-label">Bank / Network Name</div>
     <div class="detail-value" id="bankName">Loading...</div>
   </div>
   <div class="detail-card">
@@ -366,7 +366,7 @@ body.light-mode .flow-badge{background:#f1f5f9;color:#64748b;border-color:#e2e8f
 </button>
 
 <div class="footer anim d7">
-  <div class="footer-text">9jaCash 2026 • Secured Payments</div>
+  <div class="footer-text">Ghana Cash 2026 • Secured Payments</div>
 </div>
 
 </div>
@@ -413,10 +413,10 @@ let userUnsubscribe = null;
 
 // ========== FORMAT MONEY ==========
 function formatMoney(num) {
-  if (num === null || num === undefined || num === "") return "₦0";
+  if (num === null || num === undefined || num === "") return "GH₵0";
   let n = parseFloat(num);
-  if (isNaN(n)) return "₦0";
-  return "₦" + n.toLocaleString("en-NG");
+  if (isNaN(n)) return "GH₵0";
+  return "GH₵" + n.toLocaleString("en-GH", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 }
 
 // ========== THEME ==========
@@ -458,8 +458,8 @@ function detectFlow() {
       if (parsed && (parsed.name || parsed.planName || parsed.plan)) {
         upgradeData = {
           name: parsed.name || parsed.planName || parsed.plan || "Plan Upgrade",
-          amount: parsed.amount || parsed.price || parsed.planPrice || 0,
-          earningLimit: parsed.earningLimit || parsed.limit || parsed.dailyEarning || 0
+          amount: (parsed.amount || parsed.price || parsed.planPrice || 0) / 120,
+          earningLimit: (parsed.earningLimit || parsed.limit || parsed.dailyEarning || 0) / 120
         };
         flowType = "upgrade";
         return;
@@ -473,7 +473,9 @@ function detectFlow() {
     try {
       const parsed = JSON.parse(storedPayment);
       if (parsed && parsed.type === "payout_key_purchase") {
-        paymentData = parsed;
+        paymentData = Object.assign({}, parsed, {
+          price: (parsed.price || 0) / 120
+        });
         flowType = "payout_key";
         return;
       }
@@ -556,10 +558,10 @@ function updateOrderSummary() {
 
   } else {
     orderItem.textContent = "Unknown";
-    orderPrice.textContent = "₦0";
+    orderPrice.textContent = "GH₵0";
     orderExtraRow.style.display = "none";
     orderExtraRow2.style.display = "none";
-    orderTotal.textContent = "₦0";
+    orderTotal.textContent = "GH₵0";
   }
 }
 
