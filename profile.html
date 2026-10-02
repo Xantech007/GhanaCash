@@ -4,7 +4,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>9jaCash — Profile</title>
+  <title>Ghana Cash — Profile</title>
 
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
@@ -313,10 +313,10 @@
 
     <!-- Profile Card -->
     <div class="profile-card text-center" style="margin-top: 10px;">
-      <div class="avatar-large" id="avatarLarge">9</div>
+      <div class="avatar-large" id="avatarLarge">G</div>
       <h3 class="text-lg font-bold flex items-center justify-center gap-2 cursor-pointer hover:text-violet-400"
         id="profileName" onclick="promptEditName()" title="Click to edit display name">
-        9jaCash User <i class="fa-solid fa-pen-to-square text-xs text-slate-500"></i>
+        Ghana Cash User <i class="fa-solid fa-pen-to-square text-xs text-slate-500"></i>
       </h3>
       <span
         class="inline-block mt-2 px-3 py-1 bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 text-xs font-bold rounded-full">
@@ -408,7 +408,7 @@
       <div class="field-box">
         <div class="field-info">
           <div class="field-label">Total Earnings Mined</div>
-          <div class="field-value text-emerald-400 font-bold text-sm" id="profileTotalMined">₦0</div>
+          <div class="field-value text-emerald-400 font-bold text-sm" id="profileTotalMined">GH₵0</div>
         </div>
         <i class="fa-solid fa-hammer text-slate-500"></i>
       </div>
@@ -426,7 +426,7 @@
         <div class="field-info w-full text-center py-2">
           <div class="field-label mb-1">Your Payout Key</div>
           <div class="field-value font-mono text-xl font-extrabold text-amber-400 tracking-widest select-all"
-            id="profilePayoutKeyText">9JA-XXXXXX</div>
+            id="profilePayoutKeyText">GH-XXXXXX</div>
         </div>
       </div>
     </div>
@@ -472,10 +472,10 @@
       <div class="mb-4">
         <h4 class="font-extrabold text-lg text-white mb-1"
           style="text-shadow: 0 2px 10px rgba(0,0,0,0.3); margin-top: 4px;">
-          <i class="fa-solid fa-video mr-1.5 text-violet-400"></i> ₦500,000 Video Challenge
+          <i class="fa-solid fa-video mr-1.5 text-violet-400"></i> GH₵4,166.67 Video Challenge
         </h4>
         <p class="text-xs text-slate-300 leading-relaxed font-medium">
-          Record a 1-minute review about 9jaCash. Get rewarded with ₦500,000 instantly credited to your balance upon
+          Record a 1-minute review about Ghana Cash. Get rewarded with GH₵4,166.67 instantly credited to your balance upon
           approval!
         </p>
       </div>
@@ -483,7 +483,7 @@
       <div class="flex items-center justify-between p-3 rounded-xl bg-white/5 border border-white/10 backdrop-blur-sm">
         <div>
           <div class="text-[9px] font-bold text-slate-400 uppercase tracking-wider">Instant Reward</div>
-          <div class="text-base font-black text-emerald-400">₦500,000 Cash</div>
+          <div class="text-base font-black text-emerald-400">GH₵4,166.67 Cash</div>
         </div>
         <div
           class="w-10 h-10 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400">
@@ -492,16 +492,16 @@
       </div>
     </div>
 
-    <!-- About 9jaCash Card -->
+    <!-- About Ghana Cash Card -->
     <div class="profile-card cursor-pointer hover:border-violet-500/50 transition-all mb-4 text-left"
       onclick="window.location.href='about.html'" title="Click to view Platform Certifications">
       <div class="flex justify-between items-center">
-        <h4 class="font-bold text-sm text-violet-400"><i class="fa-solid fa-circle-info mr-2"></i> About 9jaCash</h4>
+        <h4 class="font-bold text-sm text-violet-400"><i class="fa-solid fa-circle-info mr-2"></i> About Ghana Cash</h4>
         <span class="text-[10px] text-violet-400 font-bold hover:underline">View Dossier <i
             class="fa-solid fa-chevron-right ml-1"></i></span>
       </div>
       <p class="text-xs text-slate-400 mt-2">
-        View our Certificate of Authenticity, CAC details, CBN alignment, and regulatory credentials.
+        View our Certificate of Authenticity, Registrar General's Department details, Bank of Ghana alignment, and regulatory credentials.
       </p>
     </div>
 
@@ -567,7 +567,7 @@
 
       const isUserVerified = data.is_verified === 1 || data.is_verified === true || data.isVerified === true;
       const verBadgeHtml = isUserVerified ? ' <i class="fa-solid fa-circle-check" style="color:#1d9bf0; font-size:16px;" title="Verified Account"></i>' : '';
-      const displayName = data.customName || data.fullName || data.name || "9jaCash User";
+      const displayName = data.customName || data.fullName || data.name || "Ghana Cash User";
       
       document.getElementById("profileName").innerHTML = displayName + verBadgeHtml + ' <i class="fa-solid fa-pen-to-square text-xs text-slate-500 ml-1"></i>';
       document.getElementById("avatarLarge").textContent = displayName.charAt(0).toUpperCase();
@@ -587,7 +587,7 @@
       
       document.getElementById("profilePlanName").textContent = data.planName || data.plan || "Free Miner";
       document.getElementById("profileMultiplier").textContent = (data.miningPower || 1) + "x";
-      document.getElementById("profileTotalMined").textContent = "₦" + (data.totalMined || 0).toLocaleString();
+      document.getElementById("profileTotalMined").textContent = "GH₵" + ((data.totalMined || 0) / 120).toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2});
       
       updatePayoutKeyUI();
     }
@@ -762,7 +762,7 @@
         title: 'Update Bank Details',
         html: `
       <div style="text-align: left; margin-bottom: 8px; font-size: 12px; color: #94a3b8; font-weight: 600;">BANK NAME</div>
-      <input id="swal-bank-name" class="swal2-input" placeholder="e.g. GTBank, Zenith, OPay" value="${userData.bankName || ''}" style="margin: 0 0 15px 0; width: 85%; background: ${isDark ? '#1e293b' : '#fff'}; color: ${isDark ? '#f8fafc' : '#1a1a2e'}; border-color: #334155; border-radius: 8px;">
+      <input id="swal-bank-name" class="swal2-input" placeholder="e.g. MTN Mobile Money, Telecel Cash, AT Money" value="${userData.bankName || ''}" style="margin: 0 0 15px 0; width: 85%; background: ${isDark ? '#1e293b' : '#fff'}; color: ${isDark ? '#f8fafc' : '#1a1a2e'}; border-color: #334155; border-radius: 8px;">
       <div style="text-align: left; margin-bottom: 8px; font-size: 12px; color: #94a3b8; font-weight: 600;">ACCOUNT NUMBER</div>
       <input id="swal-account-number" class="swal2-input" placeholder="10-digit number" maxlength="10" value="${userData.accountNumber || ''}" style="margin: 0; width: 85%; background: ${isDark ? '#1e293b' : '#fff'}; color: ${isDark ? '#f8fafc' : '#1a1a2e'}; border-color: #334155; border-radius: 8px;">
     `,
@@ -929,12 +929,12 @@
       const popup = document.getElementById('liveWithdrawalPopup');
       if (!popup) return;
 
-      const names = ["Mustafa", "Emeka", "Amina", "Chidi", "Fatima", "Tunde", "Blessing", "Musa", "Ngozi", "Ibrahim", "Yetunde", "Olumide", "Halima", "Chioma", "Kelechi", "Abubakar", "Funmi", "Uche", "Bose", "Damilola", "Efe", "Ali", "Yusuf"];
+      const names = ["Kwame", "Kofi", "Ama", "Yaw", "Akosua", "Kwaku", "Abena", "Kwadwo", "Yaa", "Kobina", "Afia", "Ekow", "Adwoa", "Kojo", "Fiifi", "Akua", "Baaba", "Kweku", "Esi", "Sefa", "Agyeman", "Osei", "Mensah"];
 
       function triggerPopup() {
         const randomName = names[Math.floor(Math.random() * names.length)];
         const randomK = Math.floor(Math.random() * (1000 - 50 + 1)) + 50;
-        const randomAmount = "₦" + (randomK * 1000).toLocaleString("en-NG");
+        const randomAmount = "GH₵" + ((randomK * 1000) / 120).toLocaleString("en-GH", {minimumFractionDigits: 2, maximumFractionDigits: 2});
         document.getElementById('liveWithdrawalText').textContent = `${randomName} successfully withdrew ${randomAmount}`;
 
         popup.style.transform = 'translate(-50%, 0)';
@@ -979,7 +979,7 @@
       <div style="display:flex; flex-direction:column; gap:14px;">
         <!-- WhatsApp Option -->
         <a id="modalWhatsappBtn"
-          href="https://wa.me/2347071134122?text=Hello%209jaCash%20Support,%20I%20need%20assistance" target="_blank"
+          href="https://wa.me/2347071134122?text=Hello%20Ghana%20Cash%20Support,%20I%20need%20assistance" target="_blank"
           style="display:flex; align-items:center; gap:16px; background:linear-gradient(135deg, #128c7e, #25d366); color:white; text-decoration:none; padding:16px 20px; border-radius:16px; font-weight:700; font-size:15px; box-shadow:0 10px 20px rgba(37,211,102,0.25);">
           <svg width="28" height="28" viewBox="0 0 24 24" fill="white" style="flex-shrink:0;">
             <path
