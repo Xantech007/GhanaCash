@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>Withdraw - 9jaCash</title>
+<title>Withdraw - Ghana Cash</title>
 
 <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-auth-compat.js"></script>
@@ -239,8 +239,8 @@ body.dark-mode .loader-overlay{background:rgba(15,23,42,0.95);}
 <!-- Balance -->
 <div class="balance-section anim d1">
   <div class="balance-label"><i class="fa-solid fa-wallet"></i>Available Balance</div>
-  <div class="balance-text" id="balanceDisplay">₦0<span>.00</span></div>
-  <div class="balance-hint">Minimum withdrawal: <span>₦50,000</span></div>
+  <div class="balance-text" id="balanceDisplay">GH₵0<span>.00</span></div>
+  <div class="balance-hint">Minimum withdrawal: <span>GH₵416.67</span></div>
 </div>
 
 <!-- PAYOUT KEY -->
@@ -280,15 +280,15 @@ body.dark-mode .loader-overlay{background:rgba(15,23,42,0.95);}
 <div class="card amount-card anim d3">
   <div class="sec-label"><i class="fa-solid fa-coins"></i>Amount</div>
   <div class="amount-input-wrap">
-    <span class="amount-prefix">₦</span>
+    <span class="amount-prefix">GH₵</span>
     <input type="tel" id="withdrawAmount" class="amount-input" placeholder="0.00" disabled>
   </div>
   <div class="quick-chips" id="quickChips">
-    <div class="chip" onclick="setAmount(50000)">₦50k</div>
-    <div class="chip" onclick="setAmount(100000)">₦100k</div>
-    <div class="chip" onclick="setAmount(250000)">₦250k</div>
-    <div class="chip" onclick="setAmount(500000)">₦500k</div>
-    <div class="chip" onclick="setAmount(1000000)">₦1M</div>
+    <div class="chip" onclick="setAmount(416.67)">GH₵416.67</div>
+    <div class="chip" onclick="setAmount(833.33)">GH₵833.33</div>
+    <div class="chip" onclick="setAmount(2083.33)">GH₵2,083.33</div>
+    <div class="chip" onclick="setAmount(4166.67)">GH₵4,166.67</div>
+    <div class="chip" onclick="setAmount(8333.33)">GH₵8,333.33</div>
   </div>
 </div>
 
@@ -316,10 +316,10 @@ body.dark-mode .loader-overlay{background:rgba(15,23,42,0.95);}
 
 <!-- Bank Selection -->
 <div class="card bank-card anim d5">
-  <div class="sec-label"><i class="fa-solid fa-building-columns"></i>Bank Account</div>
+  <div class="sec-label"><i class="fa-solid fa-building-columns"></i>Bank / Mobile Money</div>
   <div class="bank-dropdown">
     <div class="bank-trigger" id="bankTrigger" onclick="toggleBankMenu()">
-      <span class="bank-trigger-text" id="bankTriggerText">Select your bank</span>
+      <span class="bank-trigger-text" id="bankTriggerText">Select your bank or MoMo</span>
       <i class="fa-solid fa-chevron-down"></i>
     </div>
     <input type="hidden" id="bankCode">
@@ -367,12 +367,16 @@ try {
 if (!userData) { window.location.href = "start.html"; }
 
 let balance = parseFloat(localStorage.getItem("walletBalance")) || 0;
-const MIN_WITHDRAWAL = 50000;
+const MIN_WITHDRAWAL = 416.67;
 let payoutKeyVerified = false;
 
+function fmt2(num) {
+  return Number(num).toLocaleString("en-GH", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+}
+
 function formatMoney(num) {
-  if (num >= 1000000) return "₦" + (num / 1000000).toFixed(2) + "M";
-  return "₦" + num.toLocaleString("en-NG");
+  if (num >= 1000000) return "GH₵" + (num / 1000000).toFixed(2) + "M";
+  return "GH₵" + fmt2(num);
 }
 
 function updateBalanceDisplay() {
@@ -543,38 +547,19 @@ function unlockForm() {
 }
 
 const banks = [
-  {name:"Access Bank",code:"044"},{name:"Access Bank (Diamond)",code:"063"},
-  {name:"ALAT by Wema",code:"035"},{name:"ASO Savings and Loans",code:"401"},
-  {name:"Bowen Microfinance Bank",code:"50931"},{name:"CEMCS Microfinance Bank",code:"50823"},
-  {name:"Citibank Nigeria",code:"023"},{name:"Coronation Merchant Bank",code:"559"},
-  {name:"Ecobank Nigeria",code:"050"},{name:"Ekondo Microfinance Bank",code:"562"},
-  {name:"Eyowo",code:"50126"},{name:"Fidelity Bank",code:"070"},
-  {name:"Firmus MFB",code:"51314"},{name:"First Bank of Nigeria",code:"011"},
-  {name:"First City Monument Bank",code:"214"},{name:"FSDH Merchant Bank",code:"501"},
-  {name:"Globus Bank",code:"103"},{name:"Guaranty Trust Bank",code:"058"},
-  {name:"Hackman Microfinance Bank",code:"51251"},{name:"Hasal Microfinance Bank",code:"50383"},
-  {name:"Heritage Bank",code:"030"},{name:"Ibile Microfinance Bank",code:"51244"},
-  {name:"Infinity Microfinance Bank",code:"50457"},{name:"Jaiz Bank",code:"301"},
-  {name:"Kadpoly Microfinance Bank",code:"50200"},{name:"Keystone Bank",code:"082"},
-  {name:"Kuda Microfinance Bank",code:"50211"},{name:"Lagos Building Investment Company",code:"90052"},
-  {name:"Links MFB",code:"50549"},{name:"Lotus Bank",code:"303"},
-  {name:"Mayfair MFB",code:"50563"},{name:"Mint MFB",code:"50304"},
-  {name:"Moniepoint",code:"999993"},{name:"NPF Microfinance Bank",code:"50629"},
-  {name:"Opay",code:"999992"},{name:"Paga",code:"100002"},
-  {name:"PalmPay",code:"999991"},{name:"Parallex Bank",code:"526"},
-  {name:"Parkway - ReadyCash",code:"311"},{name:"Paycom",code:"999"},
-  {name:"Petra Microfinance Bank",code:"50746"},{name:"Polaris Bank",code:"076"},
-  {name:"PremiumTrust Bank",code:"105"},{name:"Providus Bank",code:"101"},
-  {name:"QuickFund MFB",code:"51293"},{name:"Rand Merchant Bank",code:"502"},
-  {name:"Rubies Bank",code:"125"},{name:"Signature Bank",code:"106"},
-  {name:"Sparkle Bank",code:"51310"},{name:"Stanbic IBTC Bank",code:"221"},
-  {name:"Standard Chartered Bank",code:"068"},{name:"Sterling Bank",code:"232"},
-  {name:"SunTrust Bank",code:"100"},{name:"TAJBank",code:"302"},
-  {name:"Tanadi Microfinance Bank",code:"51269"},{name:"Titan Trust Bank",code:"102"},
-  {name:"U&C Microfinance Bank",code:"50840"},{name:"Union Bank of Nigeria",code:"032"},
-  {name:"United Bank for Africa",code:"033"},{name:"Unity Bank",code:"215"},
-  {name:"VFD Microfinance Bank",code:"566"},{name:"Wema Bank",code:"035"},
-  {name:"Zenith Bank",code:"057"},{name:"9 Payment Service Bank",code:"120001"}
+  {name:"MTN Mobile Money",code:"MTN"},{name:"Telecel Cash",code:"VOD"},
+  {name:"AirtelTigo Money",code:"ATL"},
+  {name:"Absa Bank Ghana",code:"030100"},{name:"Access Bank Ghana",code:"280100"},
+  {name:"Agricultural Development Bank (ADB)",code:"080100"},{name:"Bank of Africa Ghana",code:"210100"},
+  {name:"CalBank",code:"140100"},{name:"Consolidated Bank Ghana (CBG)",code:"340100"},
+  {name:"Ecobank Ghana",code:"130100"},{name:"FBNBank Ghana",code:"200100"},
+  {name:"Fidelity Bank Ghana",code:"240100"},{name:"First National Bank Ghana",code:"330100"},
+  {name:"GCB Bank",code:"040100"},{name:"Guaranty Trust Bank (Ghana)",code:"230100"},
+  {name:"National Investment Bank (NIB)",code:"050100"},{name:"OmniBSIC Bank",code:"360100"},
+  {name:"Prudential Bank",code:"180100"},{name:"Republic Bank Ghana",code:"110100"},
+  {name:"Société Générale Ghana",code:"090100"},{name:"Stanbic Bank Ghana",code:"190100"},
+  {name:"Standard Chartered Bank Ghana",code:"020100"},{name:"United Bank for Africa (UBA) Ghana",code:"060100"},
+  {name:"Universal Merchant Bank (UMB)",code:"100100"},{name:"Zenith Bank Ghana",code:"120100"}
 ];
 
 function renderBankList(filtered) {
@@ -634,15 +619,22 @@ document.addEventListener("click", function(e) {
 
 function setAmount(amt) {
   if (!payoutKeyVerified) { showToast("Verify your payout key first!"); return; }
-  document.getElementById("withdrawAmount").value = amt.toLocaleString("en-NG");
+  document.getElementById("withdrawAmount").value = fmt2(amt);
   document.querySelectorAll(".chip").forEach(function(c) { c.classList.remove("active"); });
   event.target.classList.add("active");
 }
 
 document.getElementById("withdrawAmount").addEventListener("input", function(e) {
   if (!payoutKeyVerified) { e.target.value = ""; showToast("Verify your payout key first!"); return; }
-  let val = e.target.value.replace(/[^\d]/g, "");
-  if (val) e.target.value = parseInt(val).toLocaleString("en-NG");
+  let val = e.target.value.replace(/[^\d.]/g, "");
+  if (!val) { e.target.value = ""; }
+  else {
+    const parts = val.split(".");
+    const intPart = parts[0] ? parseInt(parts[0], 10).toLocaleString("en-GH") : "0";
+    const hasDot = parts.length > 1;
+    const dec = parts.slice(1).join("").slice(0, 2);
+    e.target.value = intPart + (hasDot ? "." + dec : "");
+  }
   document.querySelectorAll(".chip").forEach(function(c) { c.classList.remove("active"); });
 });
 
@@ -760,7 +752,7 @@ document.getElementById("manualNameInput").addEventListener("input", function(e)
 function submitWithdrawal() {
   if (!payoutKeyVerified) { showToast("Verify your payout key first!"); return; }
 
-  const rawAmt = document.getElementById("withdrawAmount").value.replace(/[^\d]/g, "");
+  const rawAmt = document.getElementById("withdrawAmount").value.replace(/[^\d.]/g, "");
   const amount = parseFloat(rawAmt) || 0;
   const acct = document.getElementById("accountNumber").value.trim();
   const name = document.getElementById("accountName").value.trim() || document.getElementById("manualNameInput").value.trim();
@@ -768,11 +760,11 @@ function submitWithdrawal() {
   const bankName = document.getElementById("bankName").value;
 
   if (amount < MIN_WITHDRAWAL) {
-    Swal.fire({icon: "warning", title: "Minimum Required", html: 'Minimum withdrawal is <b>₦' + MIN_WITHDRAWAL.toLocaleString("en-NG") + '</b>', confirmButtonColor: "#6366f1", background: document.body.classList.contains("dark-mode") ? "#1e293b" : "#fff", color: document.body.classList.contains("dark-mode") ? "#f8fafc" : "#1e293b"});
+    Swal.fire({icon: "warning", title: "Minimum Required", html: 'Minimum withdrawal is <b>GH₵' + fmt2(MIN_WITHDRAWAL) + '</b>', confirmButtonColor: "#6366f1", background: document.body.classList.contains("dark-mode") ? "#1e293b" : "#fff", color: document.body.classList.contains("dark-mode") ? "#f8fafc" : "#1e293b"});
     return;
   }
   if (amount > balance) {
-    Swal.fire({icon: "error", title: "Insufficient Balance", html: 'You want to withdraw <b>₦' + amount.toLocaleString("en-NG") + '</b><br>Your balance: <b>' + formatMoney(balance) + '</b>', confirmButtonColor: "#6366f1", background: document.body.classList.contains("dark-mode") ? "#1e293b" : "#fff", color: document.body.classList.contains("dark-mode") ? "#f8fafc" : "#1e293b"});
+    Swal.fire({icon: "error", title: "Insufficient Balance", html: 'You want to withdraw <b>GH₵' + fmt2(amount) + '</b><br>Your balance: <b>' + formatMoney(balance) + '</b>', confirmButtonColor: "#6366f1", background: document.body.classList.contains("dark-mode") ? "#1e293b" : "#fff", color: document.body.classList.contains("dark-mode") ? "#f8fafc" : "#1e293b"});
     return;
   }
   if (acct.length !== 10 || !/^\d{10}$/.test(acct)) {
@@ -790,7 +782,7 @@ function submitWithdrawal() {
 
   Swal.fire({
     title: "Confirm Withdrawal",
-    html: 'Withdraw <b>₦' + amount.toLocaleString("en-NG") + '</b> to<br><b>' + name + '</b><br>' + bankName + ' • ' + acct,
+    html: 'Withdraw <b>GH₵' + fmt2(amount) + '</b> to<br><b>' + name + '</b><br>' + bankName + ' • ' + acct,
     icon: "question",
     showCancelButton: true,
     confirmButtonColor: "#6366f1",
@@ -815,7 +807,7 @@ function submitWithdrawal() {
       let tx = JSON.parse(localStorage.getItem("transactionHistory")) || [];
       tx.unshift({
         type: "Withdrawal",
-        amount: "₦" + amount.toLocaleString("en-NG"),
+        amount: "GH₵" + fmt2(amount),
         status: "Pending",
         date: new Date().toLocaleString(),
         bank: bankName,
