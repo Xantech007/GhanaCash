@@ -458,8 +458,8 @@ function detectFlow() {
       if (parsed && (parsed.name || parsed.planName || parsed.plan)) {
         upgradeData = {
           name: parsed.name || parsed.planName || parsed.plan || "Plan Upgrade",
-          amount: (parsed.amount || parsed.price || parsed.planPrice || 0) / 120,
-          earningLimit: (parsed.earningLimit || parsed.limit || parsed.dailyEarning || 0) / 120
+          amount: parsed.amount || parsed.price || parsed.planPrice || 0,
+          earningLimit: parsed.earningLimit || parsed.limit || parsed.dailyEarning || 0
         };
         flowType = "upgrade";
         return;
@@ -474,7 +474,7 @@ function detectFlow() {
       const parsed = JSON.parse(storedPayment);
       if (parsed && parsed.type === "payout_key_purchase") {
         paymentData = Object.assign({}, parsed, {
-          price: (parsed.price || 0) / 120
+          price: parsed.price || 0
         });
         flowType = "payout_key";
         return;
