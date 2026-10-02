@@ -724,7 +724,7 @@ function dismissDownloadPrompt() {
   if (banner) banner.classList.remove("show");
 }
 
-const APK_URL = "https://raw.githubusercontent.com/Xantech007/9jaCashMine/main/9jaCash.apk";
+const APK_URL = "https://raw.githubusercontent.com/Xantech007/GhanaCash/main/GhanaCash.apk";
 
 function downloadAppAPK() {
   showToast("Downloading APK...");
