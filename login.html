@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>9jaCash — Login</title>
+<title>Ghana Cash — Login</title>
 
 <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-auth-compat.js"></script>
@@ -135,7 +135,7 @@ body.dark-mode .toast{background:#1e293b;border-color:#334155;}
         </div>
         <div>
           <h1 class="header-title">Welcome Back</h1>
-          <p class="header-sub">Log in to manage your 9jaCash account</p>
+          <p class="header-sub">Log in to manage your Ghana Cash account</p>
         </div>
       </div>
 
@@ -144,8 +144,8 @@ body.dark-mode .toast{background:#1e293b;border-color:#334155;}
         <!-- Phone or Gmail Field -->
         <div>
           <label class="lbl">Phone Number or Gmail</label>
-          <input type="text" id="loginIdentity" placeholder="08012345678 or name@gmail.com" class="inp" autocomplete="username" autocapitalize="none" />
-          <p id="identityHint" class="count" style="text-align:left;">Enter 11-digit phone number or valid @gmail.com</p>
+          <input type="text" id="loginIdentity" placeholder="0241234567 or name@gmail.com" class="inp" autocomplete="username" autocapitalize="none" />
+          <p id="identityHint" class="count" style="text-align:left;">Enter 10-digit phone number or valid @gmail.com</p>
         </div>
 
         <!-- Password Field -->
@@ -170,7 +170,7 @@ body.dark-mode .toast{background:#1e293b;border-color:#334155;}
           <p class="text-xs text-[#64748b] mb-3">Don't have an account?</p>
           <button type="button" onclick="goToRegister()" class="btn-secondary">
             <i class="fa-solid fa-user-plus"></i>
-            <span>Link Your Bank / Register</span>
+            <span>Link Your Bank / MoMo / Register</span>
           </button>
         </div>
 
@@ -207,8 +207,9 @@ const identityInput = document.getElementById('loginIdentity');
 const passwordInput = document.getElementById('password');
 const loginBtn = document.getElementById('loginBtn');
 
+// Ghana mobile numbers are 10 digits (e.g. 024 123 4567)
 function isValidPhone(v) {
-  return /^\d{11}$/.test(v);
+  return /^\d{10}$/.test(v);
 }
 
 function isValidGmail(v) {
@@ -230,13 +231,13 @@ identityInput.addEventListener('input', function() {
   const hint = document.getElementById('identityHint');
   
   if (!val) {
-    hint.textContent = 'Enter 11-digit phone number or valid @gmail.com';
+    hint.textContent = 'Enter 10-digit phone number or valid @gmail.com';
     hint.style.color = '';
   } else if (isValidPhone(val) || isValidGmail(val)) {
     hint.textContent = '✓ Valid login identity';
     hint.style.color = '#10b981';
   } else {
-    hint.textContent = 'Must be an 11-digit phone or valid @gmail.com';
+    hint.textContent = 'Must be a 10-digit phone or valid @gmail.com';
     hint.style.color = '#ef4444';
   }
 
@@ -268,7 +269,7 @@ document.getElementById('loginForm').addEventListener('submit', async function(e
   const isGmail = isValidGmail(identity);
 
   if (!isPhone && !isGmail) {
-    showToast('Enter a valid 11-digit Phone or Gmail address', 'error');
+    showToast('Enter a valid 10-digit Phone or Gmail address', 'error');
     return;
   }
   if (password.length < 6) {
