@@ -1,10 +1,9 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>Payment Failed - 9jaCash</title>
+<title>Payment Failed - Ghana Cash</title>
 
 <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-auth-compat.js"></script>
@@ -150,7 +149,7 @@ body.light-mode .top-title{color:#1e293b;}
   </div>
   <div class="detail-surface">
     <div class="label-text">Amount Attempted</div>
-    <div class="value-text red" id="amountAttempted">₦0</div>
+    <div class="value-text red" id="amountAttempted">GH₵0</div>
   </div>
   <div class="detail-surface hidden" id="detailExtraRow">
     <div class="label-text" id="extraLabel">Extra</div>
@@ -185,12 +184,12 @@ body.light-mode .top-title{color:#1e293b;}
   <div class="support-text">Debited but seeing this? Contact our Telegram support team for assistance.</div>
   <div class="support-handle">
     <i class="fa-brands fa-telegram" style="color:#229ed9;font-size:18px;"></i>
-    <span id="supportHandle">@New_9jacash_support</span>
+    <span id="supportHandle">@New_Ghanacash_support</span>
     <button class="copy-btn" onclick="copySupport()">Copy</button>
   </div>
 </div>
 
-<div class="footer-text anim d6">9jaCash 2026 • Secured Payments</div>
+<div class="footer-text anim d6">Ghana Cash 2026 • Secured Payments</div>
 
 </div>
 
@@ -225,11 +224,11 @@ function toggleTheme() {
 
 // ========== FORMAT MONEY ==========
 function formatMoney(num) {
-  if (num === null || num === undefined || num === "") return "₦0";
+  if (num === null || num === undefined || num === "") return "GH₵0";
   let n = parseFloat(num);
-  if (isNaN(n)) return "₦0";
-  if (n >= 1000000) return "₦" + (n / 1000000).toFixed(2) + "M";
-  return "₦" + n.toLocaleString("en-NG");
+  if (isNaN(n)) return "GH₵0";
+  if (n >= 1000000) return "GH₵" + (n / 1000000).toFixed(2) + "M";
+  return "GH₵" + n.toLocaleString("en-GH");
 }
 
 // ========== DETECT FLOW — COMPLETELY FIXED ==========
@@ -326,7 +325,7 @@ async function loadAdminSettings() {
       failedRetryLabel: "Retry Payment",
       failedDashboardLabel: "Back to Dashboard",
       failedMessage: "We could not confirm your payment. Please check your details and try again.",
-      failedSupportHandle: "@apex_custometcare"
+      failedSupportHandle: "@apex_customercare"
     };
   }
 }
@@ -351,7 +350,7 @@ function updateUI() {
     extraRow.classList.remove("hidden");
     extraLabel.textContent = "Daily Limit";
     const dailyLimit = flowData.dailyLimit || 0;
-    extraValue.textContent = dailyLimit === 999999 ? "Unlimited" : dailyLimit + " withdrawals/day";
+    extraValue.textContent = dailyLimit === 8333.325 ? "Unlimited" : dailyLimit + " withdrawals/day";
 
   } else if (flowType === "upgrade" && flowData) {
     // ========== UPGRADE FLOW ==========
@@ -375,7 +374,7 @@ function updateUI() {
   // Update all display fields
   document.getElementById("detailItem").textContent = itemName;
   document.getElementById("amountAttempted").textContent = formatMoney(amount);
-  document.getElementById("currentDate").textContent = new Date().toLocaleString("en-NG", {
+  document.getElementById("currentDate").textContent = new Date().toLocaleString("en-GH", {
     day: "numeric", month: "short", year: "numeric",
     hour: "2-digit", minute: "2-digit"
   });
@@ -385,7 +384,7 @@ function updateUI() {
   document.getElementById("failMessage").textContent = adminSettings.failedMessage || "We could not confirm your payment. Please check your details and try again.";
 
   // Update support handle
-  document.getElementById("supportHandle").textContent = adminSettings.failedSupportHandle || "@New_9jacash_support";
+  document.getElementById("supportHandle").textContent = adminSettings.failedSupportHandle || "@New_Ghanacash_support";
 
   // Update buttons based on flow type
   const rBtn = document.getElementById("retryBtn");
