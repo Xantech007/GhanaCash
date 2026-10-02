@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>9jaCash — Mega Wheel of Fun</title>
+  <title>Ghana Cash — Mega Wheel of Fun</title>
   
   <!-- FontAwesome & Google Fonts (AAA Typography) -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -227,7 +227,7 @@
       z-index: 999;
     }
 
-    /* Floating +₦X,XXX text animation */
+    /* Floating +GH₵X,XXX text animation */
     .wallet-floating-text {
       position: absolute;
       color: var(--primary-gold);
@@ -968,11 +968,11 @@
       </div>
     </div>
     
-    <span class="logo-text">9jaCash</span>
+    <span class="logo-text">Ghana Cash</span>
     
     <div class="user-balance">
       <i class="fa-solid fa-wallet"></i>
-      <span id="headerBalance">₦0.00</span>
+      <span id="headerBalance">GH₵0.00</span>
     </div>
   </header>
 
@@ -1018,27 +1018,27 @@
           <!-- Big green win pointer banner -->
           <div class="green-win-arrow">
             <i class="fa-solid fa-trophy"></i>
-            <span>WIN UP TO ₦100,000!</span>
+            <span>WIN UP TO GH₵833.33!</span>
           </div>
 
           <!-- Controls Panel -->
           <div class="controls-panel">
             <div class="input-label">
               <span>Your Stake</span>
-              <span style="color: #fff4b8;" id="balanceInfo">Min: ₦100</span>
+              <span style="color: #fff4b8;" id="balanceInfo">Min: GH₵0.83</span>
             </div>
             <div class="stake-input-wrapper">
-              <span>₦</span>
-              <input type="number" id="stakeAmountInput" class="stake-input" value="500" min="100">
+              <span>GH₵</span>
+              <input type="number" id="stakeAmountInput" class="stake-input" value="4.17" min="0.83" step="0.01">
             </div>
 
             <!-- 3D Betting Chips Selection -->
             <div class="chips-container">
-              <div class="chip chip-100" data-val="100">100</div>
-              <div class="chip chip-500 active" data-val="500">500</div>
-              <div class="chip chip-1k" data-val="1000">1K</div>
-              <div class="chip chip-5k" data-val="5000">5K</div>
-              <div class="chip chip-10k" data-val="10000">10K</div>
+              <div class="chip chip-100" data-val="0.83">0.83</div>
+              <div class="chip chip-500 active" data-val="4.17">4.17</div>
+              <div class="chip chip-1k" data-val="8.33">8.33</div>
+              <div class="chip chip-5k" data-val="41.67">41.67</div>
+              <div class="chip chip-10k" data-val="83.33">83.33</div>
               <div class="chip chip-max" id="maxBtn">MAX</div>
             </div>
           </div>
@@ -1071,7 +1071,7 @@
     <div class="win-content">
       <div class="win-icon" id="modalIcon">🎉</div>
       <h2 class="win-title" id="modalTitle">Awesome Win!</h2>
-      <div class="win-payout" id="modalPayout">₦0</div>
+      <div class="win-payout" id="modalPayout">GH₵0</div>
       <p id="modalDesc" style="color: #9ca3af; font-size: 14px; margin-bottom: 24px;"></p>
       <button class="win-btn" onclick="closeWinModal()">Collect Winnings</button>
     </div>
@@ -1766,7 +1766,7 @@
       const contentEl = document.getElementById('spinTickerContent');
       if (!contentEl) return;
 
-      const names = ["Emeka", "Amina", "Chidi", "Fatima", "Tunde", "Blessing", "Musa", "Ngozi", "Ibrahim", "Yetunde", "Olumide", "Halima", "Chioma", "Kelechi", "Abubakar", "Funmi", "Uche", "Bose", "Damilola", "Efe"];
+      const names = ["Kwame", "Ama", "Kofi", "Akosua", "Yaw", "Abena", "Kwesi", "Efua", "Kojo", "Adwoa", "Yaa", "Esi", "Fiifi", "Nana", "Kwabena", "Afia", "Kwaku", "Maame", "Selorm", "Edem"];
 
       let liveFirebaseWins = [];
       if (window._9jaCash) {
@@ -1782,7 +1782,7 @@
           const win = liveFirebaseWins[Math.floor(Math.random() * liveFirebaseWins.length)];
           const winName = win.phone ? (win.phone.slice(0, 4) + '***' + win.phone.slice(-3)) : names[Math.floor(Math.random() * names.length)];
           const mult = win.multiplier || 1;
-          const amt = "₦" + (win.payoutAmount || 0).toLocaleString();
+          const amt = "GH₵" + (win.payoutAmount || 0).toLocaleString();
           return {
             name: winName,
             outcome: `${amt} (${mult}x) ${mult >= 8 ? 'JACKPOT! 🎉' : 'Payout! 🔥'}`,
@@ -1792,14 +1792,14 @@
         }
 
         const name = names[Math.floor(Math.random() * names.length)];
-        const stakes = [1000, 2000, 3000, 5000, 10000];
+        const stakes = [8.33, 16.67, 25, 41.67, 83.33];
         const randomStake = stakes[Math.floor(Math.random() * stakes.length)];
         const multipliers = [2.0, 3.0, 4.0, 5.0, 6.0, 8.0, 10.0, 20.0, 100.0];
         
         const rIdx = Math.floor(Math.random() * multipliers.length);
         const multVal = multipliers[rIdx];
         const winnings = randomStake * multVal;
-        const winningsFormatted = "₦" + winnings.toLocaleString();
+        const winningsFormatted = "GH₵" + winnings.toLocaleString("en-GH", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
         
         const outcomes = [
           `${winningsFormatted} (2.0x) Multiplier! 💸`,
@@ -2109,16 +2109,16 @@
 
         playCoinSound();
 
-        const betVal = this.id === 'maxBtn' ? Math.floor(currentBalance) : this.dataset.val;
+        const betVal = this.id === 'maxBtn' ? Math.floor(currentBalance * 100) / 100 : this.dataset.val;
         stakeInput.value = betVal;
 
-        document.getElementById("croupierSpeech").textContent = `Wager of ${betVal} Naira! Best of luck!`;
-        speak(`Wager set to ${betVal} Naira!`);
+        document.getElementById("croupierSpeech").textContent = `Wager of ${betVal} Cedis! Best of luck!`;
+        speak(`Wager set to ${betVal} Cedis!`);
       });
     });
 
     function updateBalanceDisplay() {
-      headerBalance.textContent = "₦" + currentBalance.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+      headerBalance.textContent = "GH₵" + currentBalance.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
     }
 
     // ========== GLOBAL EFFECTS CANVAS ENGINE (FLY-TO-WALLET COIN STREAM) ==========
@@ -2265,7 +2265,7 @@
 
             if (p.isLast) {
               playChaching();
-              triggerFloatingText(p.p2.x, p.p2.y, `+₦${Math.round(currentBalance - p.targetNewBalance + p.incrementVal * 18).toLocaleString()}`);
+              triggerFloatingText(p.p2.x, p.p2.y, `+GH₵${Math.round(currentBalance - p.targetNewBalance + p.incrementVal * 18).toLocaleString()}`);
               
               currentBalance = p.targetNewBalance;
               updateBalanceDisplay();
@@ -2390,8 +2390,8 @@
     function triggerSpinGame() {
       const stakeAmount = parseFloat(stakeInput.value);
 
-      if (isNaN(stakeAmount) || stakeAmount < 100) {
-        alert("Minimum stake amount is ₦100.");
+      if (isNaN(stakeAmount) || stakeAmount < 0.83) {
+        alert("Minimum stake amount is GH₵0.83.");
         return;
       }
       if (stakeAmount > currentBalance) {
@@ -2582,12 +2582,12 @@
         hostImg.style.animation = 'idleBreathe 0.5s ease-in-out infinite alternate';
 
         let title = "Win Payout!";
-        let desc = `Nice! You hit a ${multiplier}x multiplier and won ₦${payoutAmount.toLocaleString()}.`;
+        let desc = `Nice! You hit a ${multiplier}x multiplier and won GH₵${payoutAmount.toLocaleString()}.`;
         
         if (multiplier >= 8) {
           title = "👑 CASINO JACKPOT!";
           desc = `Incredible! You hit the rare ${multiplier}x jackpot multiplier!`;
-          hostSpeech.textContent = `INCREDIBLE JACKPOT! You won ₦${payoutAmount.toLocaleString()}!`;
+          hostSpeech.textContent = `INCREDIBLE JACKPOT! You won GH₵${payoutAmount.toLocaleString()}!`;
           speak("Casino Jackpot! You won!");
         } else if (multiplier === 1) {
           title = "Stake Returned";
@@ -2620,7 +2620,7 @@
         modalPayout.style.color = "var(--neon-red)";
       } else {
         modalIcon.textContent = multiplier >= 8 ? "👑" : "🎉";
-        modalPayout.textContent = "₦" + winnings.toLocaleString();
+        modalPayout.textContent = "GH₵" + winnings.toLocaleString();
         modalPayout.style.color = "var(--neon-green)";
       }
 
@@ -2699,12 +2699,12 @@
     const popup = document.getElementById('liveWithdrawalPopup');
     if (!popup) return;
 
-    const names = ["Mustafa", "Emeka", "Amina", "Chidi", "Fatima", "Tunde", "Blessing", "Musa", "Ngozi", "Ibrahim", "Yetunde", "Olumide", "Halima", "Chioma", "Kelechi", "Abubakar", "Funmi", "Uche", "Bose", "Damilola", "Efe", "Ali", "Yusuf"];
+    const names = ["Mustapha", "Kwame", "Ama", "Kofi", "Akosua", "Yaw", "Abena", "Kwesi", "Efua", "Kojo", "Adwoa", "Yaa", "Esi", "Fiifi", "Nana", "Kwabena", "Afia", "Kwaku", "Maame", "Selorm", "Edem", "Alhassan", "Issah"];
 
     function triggerPopup() {
       const randomName = names[Math.floor(Math.random() * names.length)];
       const randomK = Math.floor(Math.random() * (1000 - 50 + 1)) + 50;
-      const randomAmount = "₦" + (randomK * 1000).toLocaleString("en-NG");
+      const randomAmount = "GH₵" + (randomK * 1000 / 120).toLocaleString("en-GH", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
       document.getElementById('liveWithdrawalText').textContent = `${randomName} successfully withdrew ${randomAmount}`;
       
       popup.style.transform = 'translate(-50%, 0)';
