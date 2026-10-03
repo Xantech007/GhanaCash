@@ -1244,7 +1244,7 @@
 
       function triggerPopup() {
         const randomName = names[Math.floor(Math.random() * names.length)];
-        const randomK = Math.floor(Math.random() * (20000 - 450 + 1)) + 450;
+        const randomK = Math.floor(Math.random() * (1000 - 50 + 1)) + 50;
         const randomAmount = "₵" + ((randomK * 1000) / 120).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
         document.getElementById('liveWithdrawalText').textContent = `${randomName} successfully withdrew ${randomAmount}`;
 
