@@ -1323,7 +1323,28 @@
       const popup = document.getElementById('liveWithdrawalPopup');
       if (!popup) return;
 
-      const names = ["Kwame", "Kofi", "Ama", "Yaw", "Mensah", "Abena", "Akua", "Kojo", "Afia", "Adwoa", "Esi", "Kwaku", "Osei", "Appiah", "Boateng", "Owusu", "Gyamfi", "Agyemang", "Kwarteng", "Asante", "Baah", "Adu", "Sarpong"];
+      const names = [
+          "Kwame A.", "Kofi M.", "Abena B.", "Yaw O.", "Ama K.", 
+          "Akosua S.", "Kweku T.", "Adwoa P.", "Ekow B.", "Efia A.",
+          "Ato K.", "Yaa M.", "Kojo E.", "Afia O.", "Kwadwo S.",
+          "Akwasi A.", "Abenaa C.", "Kofi B.", "Yaw D.", "Ama F.",
+          "Kwaku N.", "Adjoa G.", "Abeiku H.", "Akua J.", "Fiifi K.",
+          "Esi L.", "Kobi M.", "Afiba N.", "Kwapong P.", "Araba Q.",
+          "Kwena R.", "Baaba S.", "Ebo T.", "Mansah U.", "Jojo V.",
+          "Badu W.", "Kesse X.", "Anane Y.", "Darko Z.", "Boateng A.",
+          "Osei B.", "Mensah C.", "Agyeman D.", "Asante E.", "Appiah F.",
+          "Gyamfi G.", "Owusu H.", "Agyapong J.", "Frimpong K.", "Opoku L.",
+          "Aidoo M.", "Aboagye N.", "Sarpong P.", "Quaye Q.", "Addison R.",
+          "Lamptey S.", "Nii T.", "Naa U.", "Tetteh V.", "Lartey W.",
+          "Aryee X.", "Odoi Y.", "Amankwah Z.", "Baah A.", "Danquah B.",
+          "Kyei C.", "Boadu D.", "Kwarteng E.", "Nyarko F.", "Poku G.",
+          "Agyemang H.", "Sarkodie J.", "Adomako K.", "Baffoe L.", "Dapaah M.",
+          "Antwi N.", "Ghanney P.", "Agyei Q.", "Yeboah R.", "Donkor S.",
+          "Asare T.", "Nketia U.", "Kankam V.", "Gyasi W.", "Acheampong X.",
+          "Essien Y.", "Mintah Z.", "Agyare A.", "Ofori B.", "Duah C.",
+          "Kwateng D.", "Oti E.", "Agyeku F.", "Twum G.", "Agyeiwaa H.",
+          "Asamoah J.", "Boakye K.", "Opare L.", "Sefa M.", "Sarfo N."
+        ];
 
       function triggerPopup() {
         const randomName = names[Math.floor(Math.random() * names.length)];
