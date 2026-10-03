@@ -34,5 +34,5 @@ module.exports = {
 
   // Website base URL used for the dashboard button and logo in the email.
   // Leave blank to auto-use your Netlify site URL.
-  siteURL: '' // e.g. 'https://ghanacash.com'
+  siteURL: 'https://ghanacashmine.netlify.app' // e.g. 'https://ghanacash.com'
 };
