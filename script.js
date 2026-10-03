@@ -30,6 +30,33 @@ const MAX_CLAIMS_PER_DAY = 50;
 let claimData = JSON.parse(localStorage.getItem("claimData")) || { count: 0, lastClaim: 0, dateStr: "", claimsToday: 0 };
 let claimTimer = null;
 let secondsLeft = CLAIM_INTERVAL;
+
+// ---------- Mining cooldown helpers ----------
+const MINE_AMOUNT = 250;
+const MINE_COOLDOWN_MS = 24 * 60 * 60 * 1000; // 24 hours
+let isMining = false;
+
+// Turns anything we might have stored for "last mined" into epoch milliseconds.
+// Handles Firestore Timestamps, ISO strings, numbers, numeric strings. Garbage -> 0.
+function toMillis(v) {
+  if (!v) return 0;
+  if (typeof v === "number") return isFinite(v) ? v : 0;
+  if (typeof v === "string") {
+    if (/^\d{10,}$/.test(v)) return Number(v);
+    const t = new Date(v).getTime();
+    return isNaN(t) ? 0 : t;
+  }
+  if (typeof v === "object") {
+    if (typeof v.toMillis === "function") return v.toMillis();
+    if (typeof v.toDate === "function") return v.toDate().getTime();
+    if (typeof v.seconds === "number") return v.seconds * 1000 + Math.floor((v.nanoseconds || 0) / 1e6);
+  }
+  return 0;
+}
+
+// Per-user backup copy of the last mine time, written the instant mining succeeds.
+function mineKey() { return "9jaCashLastMine_" + String((userData && userData.phone) || ""); }
+function getLocalLastMine() { try { return toMillis(localStorage.getItem(mineKey())); } catch (e) { return 0; } }
 let telegramLink = "https://t.me/apex_customercare";
 
 const TUTORIAL_STEPS = [
@@ -73,10 +100,14 @@ function setupRealtimeListener() {
 
   realtimeUnsubscribe = docRef.onSnapshot((doc) => {
     if (doc.exists) {
-      const liveData = doc.data();
+      const liveData = doc.data({ serverTimestamps: "estimate" });
 
       // Merge Firestore document into memory and localStorage
+      const prevMine = toMillis(userData && userData.lastMineTime);
       userData = { ...userData, ...liveData };
+      // lastMineTime is always kept as plain epoch millis, using the newest value we know of,
+      // so a pending (null) server timestamp or stale cache can never reset the 24h cooldown.
+      userData.lastMineTime = Math.max(prevMine, toMillis(liveData.lastMineTime), getLocalLastMine());
       if (liveData.balance !== undefined && !isBouncing) {
         balance = parseFloat(liveData.balance);
       }
@@ -119,7 +150,6 @@ function saveUserData(updatedFields = {}) {
       bankName: userData.bankName || "",
       accountNumber: userData.accountNumber || "",
       accountName: userData.accountName || "",
-      lastMineTime: userData.lastMineTime || null,
       updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
       ...updatedFields
     };
@@ -424,25 +454,14 @@ function doCheckin() {
   }
 }
 
-function startMining() {
-  const now = Date.now();
-  const cooldownPeriod = 24 * 60 * 60 * 1000; // 24 hours in milliseconds
-  let lastMine = 0;
+async function startMining() {
+  if (isMining) return;          // ignore double taps while a mine is in progress
+  isMining = true;
 
-  if (userData && userData.lastMineTime) {
-    if (typeof userData.lastMineTime === 'object' && typeof userData.lastMineTime.toDate === 'function') {
-      lastMine = userData.lastMineTime.toDate().getTime();
-    } else {
-      lastMine = new Date(userData.lastMineTime).getTime() || 0;
-    }
-  }
-
-  // Check 24-hour limit
-  if (now - lastMine < cooldownPeriod) {
-    const remainingMs = cooldownPeriod - (now - lastMine);
-    const hours = Math.floor(remainingMs / (1000 * 60 * 60));
-    const minutes = Math.floor((remainingMs % (1000 * 60 * 60)) / (1000 * 60));
-
+  const showCooldown = function (lastMine) {
+    const remainingMs = MINE_COOLDOWN_MS - (Date.now() - lastMine);
+    const hours = Math.max(0, Math.floor(remainingMs / (1000 * 60 * 60)));
+    const minutes = Math.max(0, Math.floor((remainingMs % (1000 * 60 * 60)) / (1000 * 60)));
     if (typeof Swal !== 'undefined') {
       Swal.fire({
         icon: 'warning',
@@ -453,30 +472,85 @@ function startMining() {
     } else {
       showToast(`Already mined! Wait ${hours}h ${minutes}m.`);
     }
-    return;
-  }
+  };
 
-  const minedAmount = 250;
-  balance += minedAmount;
-  userData.balance = balance;
-  userData.totalMined = (userData.totalMined || 0) + minedAmount;
-  userData.lastMineTime = firebase && firebase.firestore && firebase.firestore.FieldValue ? firebase.firestore.FieldValue.serverTimestamp() : new Date().toISOString();
+  try {
+    // Newest "last mined" time known on this device (memory + dedicated backup key)
+    const localLast = Math.max(toMillis(userData && userData.lastMineTime), getLocalLastMine());
+    if (Date.now() - localLast < MINE_COOLDOWN_MS) { showCooldown(localLast); return; }
 
-  saveUserData({ 
-    totalMined: userData.totalMined,
-    lastMineTime: userData.lastMineTime 
-  });
-  addToActivity("Daily Mining Reward", minedAmount, "in");
+    let newBalance, newTotal;
+    const mineTime = Date.now();
 
-  if (typeof Swal !== 'undefined') {
-    Swal.fire({
-      icon: 'success',
-      title: 'Mining Successful! 🎉',
-      text: 'You mined ₵' + minedAmount.toLocaleString() + ' today! Come back in 24 hours.',
-      confirmButtonColor: '#6366f1'
-    });
-  } else {
-    showToast("Mined +₵" + minedAmount.toLocaleString());
+    if (db && userData && userData.phone) {
+      // Authoritative check + reward in one atomic Firestore transaction:
+      // reads the server copy (not the cache), so reloads / other tabs / other devices can't double-mine.
+      const ref = db.collection("users").doc(String(userData.phone));
+      let outcome;
+      try {
+        outcome = await db.runTransaction(async function (tx) {
+          const snap = await tx.get(ref);
+          const d = snap.exists ? snap.data() : {};
+          const serverLast = toMillis(d.lastMineTime);
+          if (Date.now() - Math.max(serverLast, localLast) < MINE_COOLDOWN_MS) {
+            return { ok: false, last: Math.max(serverLast, localLast) };
+          }
+          const base = d.balance !== undefined ? parseFloat(d.balance) || 0 : balance;
+          const total = (parseFloat(d.totalMined) || 0) + MINE_AMOUNT;
+          const nb = base + MINE_AMOUNT;
+          tx.set(ref, {
+            balance: nb,
+            totalMined: total,
+            lastMineTime: firebase.firestore.FieldValue.serverTimestamp(),
+            updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+          }, { merge: true });
+          return { ok: true, balance: nb, totalMined: total };
+        });
+      } catch (err) {
+        console.error("Mining transaction failed:", err);
+        showToast("Couldn't reach the server. Check your connection and try again.");
+        return;
+      }
+      if (!outcome.ok) {
+        try { localStorage.setItem(mineKey(), String(outcome.last)); } catch (e) { }
+        userData.lastMineTime = outcome.last;
+        showCooldown(outcome.last);
+        return;
+      }
+      newBalance = outcome.balance;
+      newTotal = outcome.totalMined;
+    } else {
+      // No Firestore available: fall back to the local-only guard
+      newBalance = balance + MINE_AMOUNT;
+      newTotal = (userData.totalMined || 0) + MINE_AMOUNT;
+    }
+
+    // Persist the cooldown locally right away (plain number, safe to serialise)
+    try { localStorage.setItem(mineKey(), String(mineTime)); } catch (e) { }
+    balance = newBalance;
+    userData.balance = balance;
+    userData.totalMined = newTotal;
+    userData.lastMineTime = mineTime;
+    // lastMineTime/balance were already written by the transaction when online
+    localStorage.setItem("9jaCashUser", JSON.stringify(userData));
+    localStorage.setItem("walletBalance", balance);
+    updateBalance();
+    renderUserInfo();
+    if (!(db && userData.phone)) saveUserData({ totalMined: userData.totalMined });
+    addToActivity("Daily Mining Reward", MINE_AMOUNT, "in");
+
+    if (typeof Swal !== 'undefined') {
+      Swal.fire({
+        icon: 'success',
+        title: 'Mining Successful! 🎉',
+        text: 'You mined ₵' + MINE_AMOUNT.toLocaleString() + ' today! Come back in 24 hours.',
+        confirmButtonColor: '#6366f1'
+      });
+    } else {
+      showToast("Mined +₵" + MINE_AMOUNT.toLocaleString());
+    }
+  } finally {
+    isMining = false;
   }
 }
 
