@@ -222,39 +222,49 @@ body.dark-mode .loader-overlay{background:rgba(15,23,42,0.95);}
 <div class="divider anim d3">Payment Details</div>
 
 <div class="card anim d4">
-  <div class="card-title"><i class="fa-solid fa-building-columns"></i>Bank / Mobile Money Details</div>
+  <div class="card-title"><i class="fa-solid fa-building-columns"></i>Payout Details</div>
 
   <div class="note-box">
     <i class="fa-solid fa-circle-info"></i>
-    <div class="note-text">Enter your 10-digit <strong>account number</strong> to automatically load your bank details and account name.</div>
+    <div class="note-text">Choose how you want to be paid. For <strong>MoMo</strong>, enter your 10-digit number and we load your network and name automatically. For a <strong>bank</strong>, pick your bank first, then enter your account number.</div>
   </div>
 
   <form id="buyForm">
 
     <div class="input-group">
-      <label class="input-label">Account Number</label>
-      <input type="tel" id="accNumber" maxlength="10" placeholder="Enter 10-digit number" class="input-field" required>
+      <label class="input-label">Payout Method</label>
+      <select id="payoutMethod" class="input-field" required>
+        <option value="" disabled selected>Choose Mobile Money or Bank</option>
+        <option value="momo">Mobile Money (MoMo)</option>
+        <option value="bank">Bank Account</option>
+      </select>
+    </div>
+
+    <div class="input-group" id="bankGroup" style="display:none;">
+      <label class="input-label">Select Bank</label>
+      <select id="bankName" class="input-field">
+        <option value="" disabled selected>Choose your bank</option>
+      </select>
+    </div>
+
+    <div class="input-group" id="accGroup" style="display:none;">
+      <label class="input-label" id="accLabel">MoMo Number</label>
+      <input type="tel" id="accNumber" maxlength="10" placeholder="0241234567" class="input-field">
       <div class="input-spinner" id="accSpinner"></div>
       <div class="char-count" id="acctCount">0/10</div>
+      <div id="networkBadge" style="display:none;font-size:12px;font-weight:700;margin-top:6px;color:#6366f1;"></div>
       <div class="lookup-status" id="lookupStatus"></div>
-      
-      <!-- Container for displaying multiple bank matches -->
+
+      <!-- Container for displaying multiple matches -->
       <div class="matches-container" id="matchesContainer">
         <div class="matches-title">Multiple accounts found. Tap yours below:</div>
         <div id="matchesList"></div>
       </div>
     </div>
 
-    <div class="input-group">
+    <div class="input-group" id="nameGroup" style="display:none;">
       <label class="input-label">Account Holder Name</label>
-      <input type="text" id="accName" placeholder="Full name as on bank" class="input-field" required>
-    </div>
-
-    <div class="input-group">
-      <label class="input-label">Select Bank</label>
-      <select id="bankName" class="input-field" required>
-        <option value="" disabled selected>Choose your bank or MoMo</option>
-      </select>
+      <input type="text" id="accName" placeholder="Full name as registered" class="input-field">
     </div>
 
     <input type="hidden" id="selectedPlan">
@@ -311,7 +321,6 @@ function selectPlan(el, price, planName, dailyLimit) {
 }
 
 const banks = [
-  "MTN Mobile Money","Telecel Cash","AirtelTigo Money",
   "Absa Bank Ghana","Access Bank Ghana","Agricultural Development Bank (ADB)",
   "Bank of Africa Ghana","CalBank","Consolidated Bank Ghana (CBG)",
   "Ecobank Ghana","FBNBank Ghana","Fidelity Bank Ghana",
@@ -330,32 +339,119 @@ banks.forEach(function(b) {
   select.appendChild(opt);
 });
 
-// Auto-verification logic for account lookup with multiple matches support
-let lookupTimeout = null;
+// ---------- Payout config ----------
+const MOMO_LENGTH = 10;                      // every Ghana MoMo number is 10 digits
+const BANK_ACC_MIN = 10, BANK_ACC_MAX = 16;  // Ghana bank accounts vary (usually 13)
+// Calls /.netlify/functions/verify-account?type=momo|bank&account_number=...&bank_name=...&network=...
+const ENABLE_ACCOUNT_LOOKUP = true;
+const MOMO_PREFIXES = {
+  "MTN Mobile Money": ["024","025","053","054","055","059"],
+  "Telecel Cash":     ["020","050"],
+  "AirtelTigo Money": ["026","027","056","057"]
+};
+
+function detectMomoNetwork(num) {
+  const p = (num || "").slice(0, 3);
+  for (const n in MOMO_PREFIXES) if (MOMO_PREFIXES[n].indexOf(p) !== -1) return n;
+  return null;
+}
+function getMethod() { return document.getElementById("payoutMethod").value; }
+function isValidAccount(v) {
+  const m = getMethod();
+  if (m === "momo") return new RegExp("^\\d{" + MOMO_LENGTH + "}$").test(v) && !!detectMomoNetwork(v);
+  if (m === "bank") return new RegExp("^\\d{" + BANK_ACC_MIN + "," + BANK_ACC_MAX + "}$").test(v);
+  return false;
+}
+
+// ---------- Lookup state ----------
+let lookupState = "idle";   // idle | pending | loading | done | failed
+let lookupSeq = 0, lookupTimeout = null, nameAutoFilled = false, verifiedNetwork = "";
+
+function setNameLocked(locked) {
+  const el = document.getElementById("accName");
+  el.readOnly = locked;
+  el.style.opacity = locked ? "0.8" : "";
+  el.style.cursor = locked ? "not-allowed" : "";
+}
+
+function resetLookupUI() {
+  clearTimeout(lookupTimeout);
+  lookupSeq++;
+  lookupState = "idle";
+  verifiedNetwork = "";
+  const status = document.getElementById("lookupStatus");
+  status.style.display = "none";
+  status.textContent = "";
+  document.getElementById("accSpinner").style.display = "none";
+  document.getElementById("matchesContainer").style.display = "none";
+  document.getElementById("matchesList").innerHTML = "";
+  if (nameAutoFilled) { document.getElementById("accName").value = ""; nameAutoFilled = false; }
+  setNameLocked(false);
+}
+
+function applyMethodUI() {
+  const m = getMethod();
+  const acc = document.getElementById("accNumber");
+  acc.value = "";
+  resetLookupUI();
+  document.getElementById("bankName").value = "";
+  document.getElementById("networkBadge").style.display = "none";
+  document.getElementById("nameGroup").style.display = "block";
+  if (m === "momo") {
+    document.getElementById("bankGroup").style.display = "none";
+    document.getElementById("accGroup").style.display = "block";
+    document.getElementById("accLabel").textContent = "MoMo Number";
+    acc.placeholder = "0241234567";
+    acc.maxLength = MOMO_LENGTH;
+    document.getElementById("acctCount").textContent = "0/" + MOMO_LENGTH;
+  } else {
+    document.getElementById("bankGroup").style.display = "block";
+    document.getElementById("accGroup").style.display = "none";   // shown once a bank is chosen
+    document.getElementById("accLabel").textContent = "Account Number";
+    acc.placeholder = "Bank account number";
+    acc.maxLength = BANK_ACC_MAX;
+    document.getElementById("acctCount").textContent = "0 digits (" + BANK_ACC_MIN + "–" + BANK_ACC_MAX + ")";
+  }
+}
+
+function scheduleLookup() {
+  clearTimeout(lookupTimeout);
+  const num = document.getElementById("accNumber").value.trim();
+  const m = getMethod();
+  const ready = isValidAccount(num) && (m === "momo" || document.getElementById("bankName").value !== "");
+  if (!ENABLE_ACCOUNT_LOOKUP || !ready) { lookupState = "idle"; return; }
+  lookupState = "pending";
+  lookupTimeout = setTimeout(function() { performAccountLookup(num); }, m === "momo" ? 150 : 700);
+}
 
 function applySelectedMatch(name, bank) {
-  document.getElementById("accName").value = name;
-  const bankSelect = document.getElementById("bankName");
-  for (let option of bankSelect.options) {
-    if (option.value === bank) {
-      bankSelect.value = option.value;
-      break;
-    }
+  lookupState = "done";
+  const m = getMethod();
+  if (m === "momo") {
+    verifiedNetwork = bank || detectMomoNetwork(document.getElementById("accNumber").value) || "";
+    const badge = document.getElementById("networkBadge");
+    badge.textContent = "Network: " + verifiedNetwork;
+    badge.style.display = "block";
   }
+  document.getElementById("accName").value = name;
+  nameAutoFilled = true;
+  setNameLocked(true);
   document.getElementById("matchesContainer").style.display = "none";
   const status = document.getElementById("lookupStatus");
+  status.style.display = "block";
   status.className = "lookup-status success";
-  status.textContent = `Selected: ${name} (${bank})`;
+  status.textContent = "Verified: " + name + " (" + (m === "momo" ? verifiedNetwork : document.getElementById("bankName").value) + ")";
 }
 
 async function performAccountLookup(accNum) {
+  const m = getMethod();
+  const seq = ++lookupSeq;
   const spinner = document.getElementById("accSpinner");
   const status = document.getElementById("lookupStatus");
   const matchesContainer = document.getElementById("matchesContainer");
   const matchesList = document.getElementById("matchesList");
-  const nameInput = document.getElementById("accName");
-  const bankSelect = document.getElementById("bankName");
 
+  lookupState = "loading";
   spinner.style.display = "block";
   status.style.display = "block";
   status.className = "lookup-status";
@@ -364,65 +460,75 @@ async function performAccountLookup(accNum) {
   matchesList.innerHTML = "";
 
   try {
-    const res = await fetch(`/.netlify/functions/verify-account?account_number=${accNum}`);
+    let url = "/.netlify/functions/verify-account?type=" + m + "&account_number=" + encodeURIComponent(accNum);
+    if (m === "bank") url += "&bank_name=" + encodeURIComponent(document.getElementById("bankName").value);
+    else url += "&network=" + encodeURIComponent(detectMomoNetwork(accNum) || "");
+    const res = await fetch(url);
     const data = await res.json();
+    if (seq !== lookupSeq) return;   // a newer request replaced this one
 
-    if (data.status && data.data && data.data.length > 0) {
-      if (data.data.length === 1) {
-        // Single match found
-        const match = data.data[0];
-        applySelectedMatch(match.accountName, match.bankName);
+    let list = data && data.data;
+    if (list && !Array.isArray(list)) list = [list];
+
+    if (data.status && list && list.length > 0) {
+      if (list.length === 1) {
+        applySelectedMatch(list[0].accountName, list[0].bankName);
       } else {
-        // Multiple matches found
+        lookupState = "done";
         status.className = "lookup-status multiple";
-        status.textContent = `Found ${data.data.length} accounts linked to this number:`;
-        
-        // Auto-fill first match as default
-        nameInput.value = data.data[0].accountName;
-        bankSelect.value = data.data[0].bankName;
-
-        data.data.forEach(match => {
+        status.textContent = "Found " + list.length + " accounts linked to this number:";
+        list.forEach(function(match) {
           const item = document.createElement("div");
           item.className = "match-item";
-          item.innerHTML = `<div class="match-name">${match.accountName}</div><div class="match-bank">${match.bankName}</div>`;
-          item.onclick = function() {
-            applySelectedMatch(match.accountName, match.bankName);
-          };
+          const n = document.createElement("div"); n.className = "match-name"; n.textContent = match.accountName;
+          const b = document.createElement("div"); b.className = "match-bank"; b.textContent = match.bankName;
+          item.appendChild(n); item.appendChild(b);
+          item.onclick = function() { applySelectedMatch(match.accountName, match.bankName); };
           matchesList.appendChild(item);
         });
-
         matchesContainer.style.display = "block";
       }
     } else {
+      lookupState = "failed";
       status.className = "lookup-status error";
-      status.textContent = data.message || "Account not found across supported banks";
+      status.textContent = (data && data.message ? data.message : "Account not found") + " — enter your name manually.";
     }
   } catch (err) {
+    if (seq !== lookupSeq) return;
+    lookupState = "failed";
     status.className = "lookup-status error";
-    status.textContent = "Failed to verify account";
+    status.textContent = "Could not auto-verify — enter your name manually.";
   } finally {
-    spinner.style.display = "none";
+    if (seq === lookupSeq) spinner.style.display = "none";
   }
 }
 
+document.getElementById("payoutMethod").addEventListener("change", applyMethodUI);
+
+document.getElementById("bankName").addEventListener("change", function() {
+  // Bank chosen -> reveal account number, then look up the name
+  document.getElementById("accGroup").style.display = "block";
+  resetLookupUI();
+  scheduleLookup();
+});
+
 document.getElementById("accNumber").addEventListener("input", function(e) {
   e.target.value = e.target.value.replace(/\D/g, "");
+  const m = getMethod();
   const len = e.target.value.length;
-  document.getElementById("acctCount").textContent = len + "/10";
+  document.getElementById("acctCount").textContent = m === "momo"
+    ? len + "/" + MOMO_LENGTH
+    : len + " digits (" + BANK_ACC_MIN + "–" + BANK_ACC_MAX + ")";
+  resetLookupUI();
 
-  const status = document.getElementById("lookupStatus");
-  const matchesContainer = document.getElementById("matchesContainer");
-  status.style.display = "none";
-  status.textContent = "";
-  matchesContainer.style.display = "none";
-
-  if (lookupTimeout) clearTimeout(lookupTimeout);
-
-  if (len === 10) {
-    lookupTimeout = setTimeout(() => {
-      performAccountLookup(e.target.value);
-    }, 400);
+  const badge = document.getElementById("networkBadge");
+  if (m === "momo") {
+    const net = len >= 3 ? detectMomoNetwork(e.target.value) : null;
+    if (net) { badge.textContent = "Network: " + net; badge.style.display = "block"; }
+    else if (len >= 3) { badge.textContent = "Unrecognised network prefix"; badge.style.display = "block"; }
+    else badge.style.display = "none";
   }
+  scheduleLookup();
 });
 
 const form = document.getElementById("buyForm");
@@ -431,7 +537,10 @@ form.addEventListener("submit", function(e) {
 
   const accNumber = document.getElementById("accNumber").value.trim();
   const accName = document.getElementById("accName").value.trim();
-  const bankName = document.getElementById("bankName").value;
+  const payoutType = getMethod();
+  const bankName = payoutType === "momo"
+    ? (verifiedNetwork || detectMomoNetwork(accNumber) || "")
+    : document.getElementById("bankName").value;
 
   if (!selectedPlan || selectedPrice === 0) {
     Swal.fire({
@@ -445,11 +554,11 @@ form.addEventListener("submit", function(e) {
     return;
   }
 
-  if (!accNumber || !accName || !bankName) {
+  if (!payoutType || !accNumber || !accName || !bankName) {
     Swal.fire({
       icon: "warning",
       title: "Missing Fields",
-      text: "Please fill in all bank account details.",
+      text: "Please choose a payout method and fill in all details.",
       confirmButtonColor: "#6366f1",
       background: document.body.classList.contains("dark-mode") ? "#1e293b" : "#fff",
       color: document.body.classList.contains("dark-mode") ? "#f8fafc" : "#1e293b"
@@ -457,15 +566,20 @@ form.addEventListener("submit", function(e) {
     return;
   }
 
-  if (accNumber.length !== 10 || !/^\d{10}$/.test(accNumber)) {
+  if (!isValidAccount(accNumber)) {
     Swal.fire({
       icon: "error",
-      title: "Invalid Account",
-      text: "Account number must be exactly 10 digits.",
+      title: payoutType === "momo" ? "Invalid MoMo Number" : "Invalid Account",
+      text: payoutType === "momo" ? "MoMo number must be 10 digits with a valid network prefix (e.g. 0241234567)." : "Account number must be " + BANK_ACC_MIN + "–" + BANK_ACC_MAX + " digits.",
       confirmButtonColor: "#6366f1",
       background: document.body.classList.contains("dark-mode") ? "#1e293b" : "#fff",
       color: document.body.classList.contains("dark-mode") ? "#f8fafc" : "#1e293b"
     });
+    return;
+  }
+
+  if (ENABLE_ACCOUNT_LOOKUP && (lookupState === "pending" || lookupState === "loading")) {
+    showToast("Verifying your account, please wait...");
     return;
   }
 
@@ -479,6 +593,8 @@ form.addEventListener("submit", function(e) {
     accNumber: accNumber,
     accName: accName,
     bankName: bankName,
+    payoutType: payoutType,
+    accountVerified: nameAutoFilled,
     date: new Date().toLocaleString(),
     status: "pending",
     type: "payout_key_purchase"
