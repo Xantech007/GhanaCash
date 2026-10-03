@@ -119,6 +119,7 @@ function saveUserData(updatedFields = {}) {
       bankName: userData.bankName || "",
       accountNumber: userData.accountNumber || "",
       accountName: userData.accountName || "",
+      lastMineTime: userData.lastMineTime || null,
       updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
       ...updatedFields
     };
@@ -424,19 +425,54 @@ function doCheckin() {
 }
 
 function startMining() {
+  const now = Date.now();
+  const cooldownPeriod = 24 * 60 * 60 * 1000; // 24 hours in milliseconds
+  let lastMine = 0;
+
+  if (userData && userData.lastMineTime) {
+    if (typeof userData.lastMineTime === 'object' && typeof userData.lastMineTime.toDate === 'function') {
+      lastMine = userData.lastMineTime.toDate().getTime();
+    } else {
+      lastMine = new Date(userData.lastMineTime).getTime() || 0;
+    }
+  }
+
+  // Check 24-hour limit
+  if (now - lastMine < cooldownPeriod) {
+    const remainingMs = cooldownPeriod - (now - lastMine);
+    const hours = Math.floor(remainingMs / (1000 * 60 * 60));
+    const minutes = Math.floor((remainingMs % (1000 * 60 * 60)) / (1000 * 60));
+
+    if (typeof Swal !== 'undefined') {
+      Swal.fire({
+        icon: 'warning',
+        title: 'Already Mined Today!',
+        text: `You can only mine once every 24 hours. Please wait ${hours}h ${minutes}m before mining again.`,
+        confirmButtonColor: '#6366f1'
+      });
+    } else {
+      showToast(`Already mined! Wait ${hours}h ${minutes}m.`);
+    }
+    return;
+  }
+
   const minedAmount = 250;
   balance += minedAmount;
   userData.balance = balance;
   userData.totalMined = (userData.totalMined || 0) + minedAmount;
+  userData.lastMineTime = firebase && firebase.firestore && firebase.firestore.FieldValue ? firebase.firestore.FieldValue.serverTimestamp() : new Date().toISOString();
 
-  saveUserData({ totalMined: userData.totalMined });
+  saveUserData({ 
+    totalMined: userData.totalMined,
+    lastMineTime: userData.lastMineTime 
+  });
   addToActivity("Daily Mining Reward", minedAmount, "in");
 
   if (typeof Swal !== 'undefined') {
     Swal.fire({
       icon: 'success',
-      title: 'Mining Successful!',
-      text: 'You mined ₵' + minedAmount.toLocaleString() + ' today!',
+      title: 'Mining Successful! 🎉',
+      text: 'You mined ₵' + minedAmount.toLocaleString() + ' today! Come back in 24 hours.',
       confirmButtonColor: '#6366f1'
     });
   } else {
@@ -843,19 +879,26 @@ function initSocialPopup() {
 }
 
 function startLiveWithdrawalPopups() {
-  const users = ["Kofi A.", "Kwame O.", "Ama Y.", "Yaw P.", "Akosua K."];
-  const amounts = [125, 208.33, 250, 416.67, 166.67];
+  const users = [
+    "Kwame A.", "Kofi M.", "Abena B.", "Yaw O.", "Ama K.", 
+    "Akosua S.", "Kweku T.", "Adwoa P.", "Ekow B.", "Efia A."
+  ];
 
   setInterval(() => {
     const popup = document.getElementById("liveWithdrawalPopup");
     if (!popup) return;
 
     const user = users[Math.floor(Math.random() * users.length)];
-    const amt = amounts[Math.floor(Math.random() * amounts.length)];
+    // Random amount between 450 and 20000
+    const amt = Math.floor(Math.random() * (20000 - 450 + 1)) + 450;
 
-    document.getElementById("liveWithdrawalAvatar").textContent = user.charAt(0);
-    document.getElementById("liveWithdrawalUser").textContent = user;
-    document.getElementById("liveWithdrawalAction").textContent = "just withdrew " + formatMoney(amt);
+    const avatarEl = document.getElementById("liveWithdrawalAvatar");
+    const userEl = document.getElementById("liveWithdrawalUser");
+    const actionEl = document.getElementById("liveWithdrawalAction");
+
+    if (avatarEl) avatarEl.textContent = user.charAt(0);
+    if (userEl) userEl.textContent = user;
+    if (actionEl) actionEl.textContent = "just withdrew " + formatMoney(amt);
 
     popup.style.opacity = "1";
     popup.style.transform = "translate(-50%, 0)";
@@ -864,7 +907,7 @@ function startLiveWithdrawalPopups() {
       popup.style.opacity = "0";
       popup.style.transform = "translate(-50%, -150px)";
     }, 4000);
-  }, 18000);
+  }, 12000);
 }
 
 document.addEventListener("DOMContentLoaded", function () {
