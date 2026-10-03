@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>GhanaCash — Link Your Bank</title>
+<title>Ghana Cash — Link Your Payout Account</title>
 <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore-compat.js"></script>
@@ -214,8 +214,8 @@ body.dark-mode .referrer-box{background:rgba(99,102,241,0.15);border-color:rgba(
 <i class="fa-solid fa-building-columns text-white text-lg"></i>
 </div>
 <div>
-<h1 class="header-title">Link Your Bank</h1>
-<p class="header-sub">Get paid directly to your account</p>
+<h1 class="header-title">Link Your Account</h1>
+<p class="header-sub">Get paid to your MoMo or bank account</p>
 </div>
 </div>
 <form id="bankForm" class="space-y-5">
@@ -231,34 +231,21 @@ body.dark-mode .referrer-box{background:rgba(99,102,241,0.15);border-color:rgba(
 <p id="emailHint" class="count" style="text-align:left;">Enter a valid @gmail.com address</p>
 </div>
 </div>
-<!-- Step 2: Account Number -->
-<div class="s3 hide" id="fieldAccount">
-<label class="lbl">Account / MoMo Number</label>
-<input type="text" id="accountNumber" maxlength="16" placeholder="Bank account or MoMo number" inputmode="numeric" class="inp" />
-<p id="acctCount" class="count">0 digits (10–16)</p>
-<p id="opayStatus" class="text-xs text-indigo-600 dark:text-indigo-400 mt-1 font-semibold hide"><i class="fa-solid fa-spinner fa-spin mr-1"></i> Fetching account details...</p>
-<!-- Fetched Account & Bank Display -->
-<div id="fetchedDetails" class="mt-2 p-3 fetched-box rounded-xl hide">
-<div class="flex items-start gap-2">
-<i class="fa-solid fa-circle-check text-sm mt-0.5"></i>
-<div class="text-xs font-bold space-y-0.5">
-<p id="fetchedBankName" class="uppercase tracking-wider text-[10px] opacity-80"></p>
-<p id="fetchedAccountName" class="text-sm font-extrabold fetched-box-text"></p>
+<!-- Step 2: Payout Method -->
+<div class="s3 hide" id="fieldMethod">
+<label class="lbl">Payout Method</label>
+<select id="payoutMethod" class="inp">
+<option value="" disabled selected>Choose Mobile Money or Bank</option>
+<option value="momo">Mobile Money (MoMo)</option>
+<option value="bank">Bank Account</option>
+</select>
 </div>
-</div>
-</div>
-</div>
-<!-- Step 3: Bank Name -->
-<div class="s4 hide" id="fieldBank">
-<label class="lbl">Select Bank / Mobile Money</label>
+<!-- Step 3: Account details (changes with the method) -->
+<div class="s4 hide" id="fieldAccount">
+<div id="bankPicker" class="hide" style="margin-bottom:16px;">
+<label class="lbl">Select Bank</label>
 <select id="bankName" class="inp">
-<option value="" disabled selected>Choose your bank or wallet</option>
-<optgroup label="Mobile Money">
-<option value="MTN Mobile Money">MTN Mobile Money</option>
-<option value="Telecel Cash">Telecel Cash</option>
-<option value="AirtelTigo Money">AirtelTigo Money</option>
-</optgroup>
-<optgroup label="Banks">
+<option value="" disabled selected>Choose your bank</option>
 <option value="Absa Bank Ghana">Absa Bank Ghana</option>
 <option value="Access Bank Ghana">Access Bank Ghana</option>
 <option value="Agricultural Development Bank (ADB)">Agricultural Development Bank (ADB)</option>
@@ -281,12 +268,28 @@ body.dark-mode .referrer-box{background:rgba(99,102,241,0.15);border-color:rgba(
 <option value="United Bank for Africa (UBA) Ghana">United Bank for Africa (UBA) Ghana</option>
 <option value="Universal Merchant Bank (UMB)">Universal Merchant Bank (UMB)</option>
 <option value="Zenith Bank Ghana">Zenith Bank Ghana</option>
-</optgroup>
 </select>
+</div>
+<div id="acctInputWrap" class="hide">
+<label class="lbl" id="acctLabel">MoMo Number</label>
+<input type="text" id="accountNumber" maxlength="10" placeholder="0241234567" inputmode="numeric" class="inp" />
+<p id="acctCount" class="count">0 / 10</p>
+<p id="momoNetworkBadge" class="text-xs font-bold mt-1 hide" style="color:#6366f1;"></p>
+<p id="opayStatus" class="text-xs text-indigo-600 dark:text-indigo-400 mt-1 font-semibold hide"><i class="fa-solid fa-spinner fa-spin mr-1"></i> Fetching account details...</p>
+<div id="fetchedDetails" class="mt-2 p-3 fetched-box rounded-xl hide">
+<div class="flex items-start gap-2">
+<i class="fa-solid fa-circle-check text-sm mt-0.5"></i>
+<div class="text-xs font-bold space-y-0.5">
+<p id="fetchedBankName" class="uppercase tracking-wider text-[10px] opacity-80"></p>
+<p id="fetchedAccountName" class="text-sm font-extrabold fetched-box-text"></p>
+</div>
+</div>
+</div>
+</div>
 </div>
 <!-- Step 4: Full Name -->
 <div class="s5 hide" id="fieldName">
-<label class="lbl">Full Name (as in bank)</label>
+<label class="lbl">Full Name (as registered)</label>
 <input type="text" id="fullName" placeholder="Mensah Kwame John" class="inp" />
 </div>
 <!-- Step 5: Password Creation -->
@@ -352,7 +355,7 @@ body.dark-mode .referrer-box{background:rgba(99,102,241,0.15);border-color:rgba(
 <i class="fa-solid fa-check"></i>
 </div>
 <h2 class="success-title">Account Created!</h2>
-<p class="success-text">Your bank account has been linked successfully. Welcome to GhanaCash.</p>
+<p class="success-text">Your payout account has been linked successfully. Welcome to GhanaCash.</p>
 <button onclick="startOnboarding()" class="btn-primary mt-6">
 <span>Get Started</span> <i class="fa-solid fa-arrow-right"></i>
 </button>
@@ -439,10 +442,22 @@ body.dark-mode .referrer-box{background:rgba(99,102,241,0.15);border-color:rgba(
 const SIGNUP_BONUS = 83;      // GH₵ (≈ ₦10,000)
 const REFERRAL_BONUS = 83;    // GH₵ credited to the referrer
 const PHONE_LENGTH = 10;      // Ghana local format: 0XXXXXXXXX
-const ACCOUNT_MIN = 10, ACCOUNT_MAX = 16;
-// Account-name lookup was built for Nigerian NUBAN accounts. Turn on only
-// after pointing /.netlify/functions/verify-account at a Ghana-capable provider.
-const ENABLE_ACCOUNT_LOOKUP = false;
+const MOMO_LENGTH = 10;                       // every Ghana MoMo number is 10 digits
+const BANK_ACC_MIN = 10, BANK_ACC_MAX = 16;   // Ghana bank accounts vary (usually 13)
+// Name lookup calls /.netlify/functions/verify-account with:
+//   ?type=momo|bank &account_number=... &bank_name=... (banks) &network=... (MoMo prefix guess)
+// It must answer { status:true, data:[{ accountName, bankName }] }.
+const ENABLE_ACCOUNT_LOOKUP = true;
+const MOMO_PREFIXES = {
+  'MTN Mobile Money': ['024','025','053','054','055','059'],
+  'Telecel Cash':     ['020','050'],
+  'AirtelTigo Money': ['026','027','056','057']
+};
+function detectMomoNetwork(num) {
+  const p = (num || '').slice(0, 3);
+  for (const n in MOMO_PREFIXES) if (MOMO_PREFIXES[n].indexOf(p) !== -1) return n;
+  return null;
+}
 
 // ========== PROMO CODES ==========
 const VALID_CODES = ["SMART-TECH09", "AMUTV-29", "BUOPU-95", "NJPAK-09", "UFMZQ-19", "WOOFW-52"];
@@ -506,16 +521,16 @@ let currentStep = 1;
 const totalSteps = 5;
 const stepLabels = [
 "STEP 1 - ACCOUNT DETAILS",
-"Step 2 of 5 — Account Number",
-"Step 3 of 5 — Bank Selection",
+"Step 2 of 5 — Payout Method",
+"Step 3 of 5 — Account Details",
 "Step 4 of 5 — Full Name",
 "Step 5 of 5 — Password & Promo Code"
 ];
-const fields = ['fieldPhone', 'fieldAccount', 'fieldBank', 'fieldName', 'fieldPassword'];
+const fields = ['fieldPhone', 'fieldMethod', 'fieldAccount', 'fieldName', 'fieldPassword'];
 const inputs = {
 1: 'phone',
-2: 'accountNumber',
-3: 'bankName',
+2: 'payoutMethod',
+3: 'accountNumber',
 4: 'fullName',
 5: 'password'
 };
@@ -574,12 +589,6 @@ return;
 }
 nextBtn.innerHTML = originalContent;
 }
-if (currentStep === 2 && ENABLE_ACCOUNT_LOOKUP) {
-const accountNum = document.getElementById('accountNumber').value.trim();
-if (accountNum.length >= ACCOUNT_MIN) {
-fetchAccountDetails(accountNum);
-}
-}
 if (currentStep < totalSteps) {
 showStep(currentStep + 1);
 }
@@ -599,8 +608,13 @@ function isValidGhanaPhone(v) {
 return new RegExp('^\\d{' + PHONE_LENGTH + '}$').test(v);
 }
 
+function getMethod() { return document.getElementById('payoutMethod').value; }
+
 function isValidAccount(v) {
-return new RegExp('^\\d{' + ACCOUNT_MIN + ',' + ACCOUNT_MAX + '}$').test(v);
+const m = getMethod();
+if (m === 'momo') return new RegExp('^\\d{' + MOMO_LENGTH + '}$').test(v) && !!detectMomoNetwork(v);
+if (m === 'bank') return new RegExp('^\\d{' + BANK_ACC_MIN + ',' + BANK_ACC_MAX + '}$').test(v);
+return false;
 }
 
 function checkNextEnabled() {
@@ -614,97 +628,182 @@ return;
 let valid = false;
 const val = input.value.trim();
 if (currentStep === 1) valid = isValidGhanaPhone(val) && isValidGmail(document.getElementById('profileEmail').value);
-else if (currentStep === 2) valid = isValidAccount(val);
-else if (currentStep === 3) valid = val !== '';
+else if (currentStep === 2) valid = val !== '';
+else if (currentStep === 3) {
+valid = isValidAccount(val) && (getMethod() === 'momo' || document.getElementById('bankName').value !== '')
+&& (!ENABLE_ACCOUNT_LOOKUP || lookupState === 'done' || lookupState === 'failed');
+}
 else if (currentStep === 4) valid = val.length > 2;
 else if (currentStep === 5) valid = val.length >= 6;
 nextBtn.disabled = !valid;
 }
 
-// Global state for detected multi-bank choices
+// ---------- Payout method / lookup state ----------
 let matchedBankResults = [];
+let lookupState = 'idle';   // idle | pending | loading | done | failed
+let lookupSeq = 0, lookupTimer = null, nameAutoFilled = false, verifiedNetwork = '';
+
+function setFullNameLocked(locked) {
+const el = document.getElementById('fullName');
+el.readOnly = locked;
+el.style.backgroundColor = locked ? '#e2e8f0' : '';
+el.style.cursor = locked ? 'not-allowed' : '';
+}
+
+function resetLookupUI() {
+clearTimeout(lookupTimer);
+lookupSeq++;
+lookupState = 'idle';
+verifiedNetwork = '';
+matchedBankResults = [];
+document.getElementById('opayStatus').classList.add('hide');
+document.getElementById('fetchedDetails').classList.add('hide');
+const pw = document.getElementById('multiBankSelectWrap');
+if (pw) pw.classList.add('hide');
+if (nameAutoFilled) { document.getElementById('fullName').value = ''; nameAutoFilled = false; }
+setFullNameLocked(false);
+}
+
+function applyMethodUI() {
+const m = getMethod();
+const acc = document.getElementById('accountNumber');
+acc.value = '';
+resetLookupUI();
+document.getElementById('bankName').value = '';
+document.getElementById('momoNetworkBadge').classList.add('hide');
+const bankPicker = document.getElementById('bankPicker');
+const wrap = document.getElementById('acctInputWrap');
+if (m === 'momo') {
+bankPicker.classList.add('hide');
+wrap.classList.remove('hide');
+document.getElementById('acctLabel').textContent = 'MoMo Number';
+acc.placeholder = '0241234567';
+acc.maxLength = MOMO_LENGTH;
+document.getElementById('acctCount').textContent = '0 / ' + MOMO_LENGTH;
+} else if (m === 'bank') {
+bankPicker.classList.remove('hide');
+wrap.classList.add('hide');           // shown after a bank is selected
+document.getElementById('acctLabel').textContent = 'Account Number';
+acc.placeholder = 'Bank account number';
+acc.maxLength = BANK_ACC_MAX;
+document.getElementById('acctCount').textContent = '0 digits (' + BANK_ACC_MIN + '–' + BANK_ACC_MAX + ')';
+}
+checkNextEnabled();
+}
+
+function scheduleLookup() {
+clearTimeout(lookupTimer);
+const num = document.getElementById('accountNumber').value.trim();
+const m = getMethod();
+const ready = isValidAccount(num) && (m === 'momo' || document.getElementById('bankName').value !== '');
+if (!ENABLE_ACCOUNT_LOOKUP || !ready) { lookupState = 'idle'; checkNextEnabled(); return; }
+lookupState = 'pending';
+checkNextEnabled();
+lookupTimer = setTimeout(function() { fetchAccountDetails(num); }, m === 'momo' ? 150 : 700);
+}
 
 async function fetchAccountDetails(accNum) {
+const m = getMethod();
+const seq = ++lookupSeq;
 const statusEl = document.getElementById('opayStatus');
 const fetchedContainer = document.getElementById('fetchedDetails');
+lookupState = 'loading';
 statusEl.classList.remove('hide');
 fetchedContainer.classList.add('hide');
+checkNextEnabled();
 try {
-const response = await fetch(`/.netlify/functions/verify-account?account_number=${accNum}`);
+let url = '/.netlify/functions/verify-account?type=' + m + '&account_number=' + encodeURIComponent(accNum);
+if (m === 'bank') url += '&bank_name=' + encodeURIComponent(document.getElementById('bankName').value);
+else url += '&network=' + encodeURIComponent(detectMomoNetwork(accNum) || '');
+const response = await fetch(url);
 const result = await response.json();
-if (response.ok && result.status && result.data && result.data.length > 0) {
-matchedBankResults = result.data;
-if (matchedBankResults.length === 1) {
-applySelectedAccount(matchedBankResults[0]);
-showToast('Account details verified!', 'success');
+if (seq !== lookupSeq) return;            // a newer request replaced this one
+let list = result && result.data;
+if (list && !Array.isArray(list)) list = [list];
+if (response.ok && result.status && list && list.length > 0) {
+matchedBankResults = list;
+if (list.length === 1) {
+applySelectedAccount(list[0]);
+showToast(m === 'momo' ? 'MoMo name fetched!' : 'Account name fetched!', 'success');
 } else {
-showMultiBankSelector(matchedBankResults);
-showToast(`Found ${matchedBankResults.length} matching banks. Please select yours.`, 'info');
+lookupState = 'done';
+showMultiBankSelector(list);
+showToast('Found ' + list.length + ' matches. Please select yours.', 'info');
 }
 } else {
-showToast(result.message || 'No match found. Please verify details manually.', 'error');
+throw new Error((result && result.message) || 'No match found');
 }
 } catch (err) {
-console.warn('Auto-search failed:', err);
-showToast('Could not auto-verify account details.', 'error');
+if (seq !== lookupSeq) return;
+console.warn('Account lookup failed:', err);
+lookupState = 'failed';
+showToast('Could not auto-verify. Please type your name as registered.', 'error');
 } finally {
-statusEl.classList.add('hide');
-checkNextEnabled();
+if (seq === lookupSeq) { statusEl.classList.add('hide'); checkNextEnabled(); }
 }
 }
 
 // Populate UI with verified payload
 function applySelectedAccount(accountObj) {
+lookupState = 'done';
+const m = getMethod();
+if (m === 'momo') {
+verifiedNetwork = accountObj.bankName || detectMomoNetwork(document.getElementById('accountNumber').value) || '';
+const badge = document.getElementById('momoNetworkBadge');
+badge.textContent = 'Network: ' + verifiedNetwork;
+badge.classList.remove('hide');
+}
 document.getElementById('fullName').value = accountObj.accountName;
-document.getElementById('bankName').value = accountObj.bankName;
-document.getElementById('fetchedBankName').textContent = accountObj.bankName;
+nameAutoFilled = true;
+setFullNameLocked(true);
+document.getElementById('fetchedBankName').textContent = m === 'momo' ? verifiedNetwork : document.getElementById('bankName').value;
 document.getElementById('fetchedAccountName').textContent = accountObj.accountName;
 document.getElementById('fetchedDetails').classList.remove('hide');
 checkNextEnabled();
 }
 
-// Render dynamic choice UI if multiple banks match
+// Render dynamic choice UI if multiple matches come back
 function showMultiBankSelector(matches) {
 let selectorContainer = document.getElementById('multiBankSelectWrap');
 if (!selectorContainer) {
 selectorContainer = document.createElement('div');
 selectorContainer.id = 'multiBankSelectWrap';
 selectorContainer.className = 'mt-3 p-3 multi-bank-box rounded-xl';
-const containerParent = document.getElementById('fieldAccount');
-containerParent.appendChild(selectorContainer);
+document.getElementById('acctInputWrap').appendChild(selectorContainer);
 }
-let optionsHTML = `
-<label class="block text-xs font-bold mb-2">
-<i class="fa-solid fa-layer-group mr-1"></i> Multiple Banks Found — Select Yours:
-</label>
-<select id="bankMatchPicker" class="inp text-sm">
-<option value="" disabled selected>-- Select your bank --</option>
-`;
-matches.forEach((item, index) => {
-optionsHTML += `<option value="${index}">${item.bankName} (${item.accountName})</option>`;
+let optionsHTML = '<label class="block text-xs font-bold mb-2"><i class="fa-solid fa-layer-group mr-1"></i> Multiple matches found — select yours:</label>' +
+'<select id="bankMatchPicker" class="inp text-sm"><option value="" disabled selected>-- Select --</option>';
+matches.forEach(function(item, index) {
+optionsHTML += '<option value="' + index + '">' + item.bankName + ' (' + item.accountName + ')</option>';
 });
-optionsHTML += `</select>`;
+optionsHTML += '</select>';
 selectorContainer.innerHTML = optionsHTML;
 selectorContainer.classList.remove('hide');
 document.getElementById('bankMatchPicker').addEventListener('change', function() {
-const selectedIdx = parseInt(this.value, 10);
-if (!isNaN(selectedIdx) && matches[selectedIdx]) {
-applySelectedAccount(matches[selectedIdx]);
-}
+const idx = parseInt(this.value, 10);
+if (!isNaN(idx) && matches[idx]) applySelectedAccount(matches[idx]);
 });
 }
 
-// Account number input
+// Payout method dropdown
+document.getElementById('payoutMethod').addEventListener('change', applyMethodUI);
+
+// Account number input (MoMo number or bank account number)
 document.getElementById('accountNumber').addEventListener('input', function() {
 this.value = this.value.replace(/\D/g, '');
-document.getElementById('acctCount').textContent = this.value.length + ' digits (' + ACCOUNT_MIN + '–' + ACCOUNT_MAX + ')';
-document.getElementById('fetchedDetails').classList.add('hide');
-const pickerWrap = document.getElementById('multiBankSelectWrap');
-if (pickerWrap) pickerWrap.classList.add('hide');
-checkNextEnabled();
-if (ENABLE_ACCOUNT_LOOKUP && this.value.length === ACCOUNT_MIN) {
-fetchAccountDetails(this.value);
+const m = getMethod();
+document.getElementById('acctCount').textContent = m === 'momo'
+? this.value.length + ' / ' + MOMO_LENGTH
+: this.value.length + ' digits (' + BANK_ACC_MIN + '–' + BANK_ACC_MAX + ')';
+resetLookupUI();
+const badge = document.getElementById('momoNetworkBadge');
+if (m === 'momo') {
+const net = this.value.length >= 3 ? detectMomoNetwork(this.value) : null;
+if (net) { badge.textContent = 'Network: ' + net; badge.classList.remove('hide'); }
+else if (this.value.length >= 3) { badge.textContent = 'Unrecognised network prefix'; badge.classList.remove('hide'); }
+else badge.classList.add('hide');
 }
+scheduleLookup();
 });
 
 // ========== INPUT LISTENERS ==========
@@ -738,11 +837,11 @@ this.value = this.value.toUpperCase();
 });
 
 document.getElementById('bankName').addEventListener('change', function() {
+// Bank chosen -> reveal the account number field, then look up the name
+document.getElementById('acctInputWrap').classList.remove('hide');
+resetLookupUI();
+scheduleLookup();
 checkNextEnabled();
-const accNum = document.getElementById('accountNumber').value.trim();
-if (ENABLE_ACCOUNT_LOOKUP && accNum.length >= ACCOUNT_MIN) {
-fetchAccountDetails(accNum);
-}
 });
 
 document.getElementById('password').addEventListener('input', checkNextEnabled);
@@ -753,7 +852,8 @@ e.preventDefault();
 const phone = document.getElementById('phone').value.trim();
 const profileEmail = document.getElementById('profileEmail').value.trim().toLowerCase();
 const fullName = document.getElementById('fullName').value.trim();
-const bankName = document.getElementById('bankName').value;
+const payoutType = getMethod();
+const bankName = payoutType === 'momo' ? (verifiedNetwork || detectMomoNetwork(document.getElementById('accountNumber').value.trim()) || '') : document.getElementById('bankName').value;
 const accountNumber = document.getElementById('accountNumber').value.trim();
 const password = document.getElementById('password').value.trim();
 const promoCode = document.getElementById('promoCode').value.trim().toUpperCase();
@@ -769,11 +869,15 @@ showStep(1);
 return;
 }
 if (!isValidAccount(accountNumber)) {
-showToast('Account number must be ' + ACCOUNT_MIN + '–' + ACCOUNT_MAX + ' digits', 'error');
+showToast(payoutType === 'momo' ? 'MoMo number must be ' + MOMO_LENGTH + ' digits with a valid network prefix' : 'Account number must be ' + BANK_ACC_MIN + '–' + BANK_ACC_MAX + ' digits', 'error');
+return;
+}
+if (!payoutType) {
+showToast('Choose Mobile Money or Bank', 'error');
 return;
 }
 if (!bankName) {
-showToast('Select your bank', 'error');
+showToast(payoutType === 'momo' ? 'Could not detect your MoMo network' : 'Select your bank', 'error');
 return;
 }
 if (fullName.length < 3) {
@@ -803,8 +907,10 @@ phone: phone,
 email: profileEmail,
 fullName: fullName,
 name: fullName,
+payoutType: payoutType,
 bankName: bankName,
 accountNumber: accountNumber,
+accountVerified: nameAutoFilled,
 password: password,
 promoCode: promoCode || null,
 promoBonus: promo.bonus,
@@ -870,8 +976,10 @@ return db.collection('linkedAccounts').doc(userId).set({
 phone: data.phone,
 email: data.email,
 fullName: data.fullName,
+payoutType: data.payoutType,
 bankName: data.bankName,
 accountNumber: data.accountNumber,
+accountVerified: data.accountVerified,
 createdAt: data.createdAt,
 status: 'active'
 });
