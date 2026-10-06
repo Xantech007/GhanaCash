@@ -238,6 +238,17 @@ let flowData = null;
 let payoutKey = "";
 let keyRevealed = false;
 
+// Helper to determine mining power based on plan name
+function getMiningPower(planName) {
+  if (!planName) return 1;
+  const name = planName.toLowerCase();
+  if (name.includes("diamond")) return 5;
+  if (name.includes("gold")) return 3;
+  if (name.includes("silver")) return 2;
+  if (name.includes("basic")) return 1;
+  return 1; // Default fallback
+}
+
 // ========== THEME (Syncs with dashboard via 9jaCashDark) ==========
 function initTheme() {
   const isDark = localStorage.getItem("9jaCashDark") === "true";
@@ -443,20 +454,25 @@ function updateUI() {
     primaryBtn.innerHTML = '<i class="fa-solid fa-house"></i> Back to Dashboard';
     secondaryBtn.innerHTML = '<i class="fa-solid fa-rocket"></i> Upgrade Again';
 
-    // Save plan to user data
+    // Calculate new mining power based on plan
+    const newMiningPower = getMiningPower(flowData.name);
+
+    // Save plan & mining power to local user data
     if (userData) {
       userData.plan = flowData.name;
       userData.earningLimit = flowData.earningLimit;
       userData.planDate = new Date().toLocaleString();
+      userData.miningpower = newMiningPower;
       localStorage.setItem("9jaCashUser", JSON.stringify(userData));
       
-      // Sync to Firebase
+      // Sync to Firebase users collection
       if (window._9jaCash && window._9jaCash.db && userData.phone) {
         window._9jaCash.db.collection("users").doc(userData.phone).update({
           plan: flowData.name,
           earningLimit: flowData.earningLimit,
-          planDate: new Date().toLocaleString()
-        }).catch(function(err){});
+          planDate: new Date().toLocaleString(),
+          miningpower: newMiningPower
+        }).catch(function(err){ console.error("Error updating miningpower:", err); });
       }
     }
 
