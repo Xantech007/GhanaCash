@@ -238,17 +238,6 @@ let flowData = null;
 let payoutKey = "";
 let keyRevealed = false;
 
-// Helper to determine mining power based on plan name
-function getMiningPower(planName) {
-  if (!planName) return 1;
-  const name = planName.toLowerCase();
-  if (name.includes("diamond")) return 5;
-  if (name.includes("gold")) return 3;
-  if (name.includes("silver")) return 2;
-  if (name.includes("basic")) return 1;
-  return 1; // Default fallback
-}
-
 // ========== THEME (Syncs with dashboard via 9jaCashDark) ==========
 function initTheme() {
   const isDark = localStorage.getItem("9jaCashDark") === "true";
@@ -454,25 +443,35 @@ function updateUI() {
     primaryBtn.innerHTML = '<i class="fa-solid fa-house"></i> Back to Dashboard';
     secondaryBtn.innerHTML = '<i class="fa-solid fa-rocket"></i> Upgrade Again';
 
-    // Calculate new mining power based on plan
-    const newMiningPower = getMiningPower(flowData.name);
+    // Map plan to miningPower value
+    let miningPower = 1;
+    const planName = (flowData.name || "").toLowerCase();
+    if (planName.includes("silver")) {
+      miningPower = 2;
+    } else if (planName.includes("gold")) {
+      miningPower = 3;
+    } else if (planName.includes("diamond")) {
+      miningPower = 5;
+    } else if (planName.includes("basic")) {
+      miningPower = 1;
+    }
 
-    // Save plan & mining power to local user data
+    // Save plan and miningPower to user data
     if (userData) {
       userData.plan = flowData.name;
       userData.earningLimit = flowData.earningLimit;
+      userData.miningPower = miningPower;
       userData.planDate = new Date().toLocaleString();
-      userData.miningpower = newMiningPower;
       localStorage.setItem("9jaCashUser", JSON.stringify(userData));
       
-      // Sync to Firebase users collection
+      // Sync to Firebase
       if (window._9jaCash && window._9jaCash.db && userData.phone) {
         window._9jaCash.db.collection("users").doc(userData.phone).update({
           plan: flowData.name,
           earningLimit: flowData.earningLimit,
-          planDate: new Date().toLocaleString(),
-          miningpower: newMiningPower
-        }).catch(function(err){ console.error("Error updating miningpower:", err); });
+          miningPower: miningPower,
+          planDate: new Date().toLocaleString()
+        }).catch(function(err){});
       }
     }
 
