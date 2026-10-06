@@ -24,20 +24,32 @@ let balance = (userData ? parseFloat(userData.balance) : 0) || parseFloat(localS
 let balanceHidden = false;
 const CHECKIN_REWARDS = [4.17, 8.33, 12.5, 16.67, 25, 41.67, 83.33];
 let checkinData = JSON.parse(localStorage.getItem("checkinData")) || { streak: 0, lastCheckin: null, claimedDays: [] };
-const CLAIM_AMOUNT = 16.67;
+const BASE_CLAIM_AMOUNT = 16.67;
 const CLAIM_INTERVAL = 60;
 const MAX_CLAIMS_PER_DAY = 50;
 let claimData = JSON.parse(localStorage.getItem("claimData")) || { count: 0, lastClaim: 0, dateStr: "", claimsToday: 0 };
 let claimTimer = null;
 let secondsLeft = CLAIM_INTERVAL;
 
-// ---------- Mining cooldown helpers ----------
-const MINE_AMOUNT = 250;
+// ---------- Mining cooldown & Plan Multiplier helpers ----------
+const BASE_MINE_AMOUNT = 250;
 const MINE_COOLDOWN_MS = 24 * 60 * 60 * 1000; // 24 hours
 let isMining = false;
 
-// Turns anything we might have stored for "last mined" into epoch milliseconds.
-// Handles Firestore Timestamps, ISO strings, numbers, numeric strings. Garbage -> 0.
+// Helper to calculate active rate multiplier based on user's active tier/plan
+function getPlanMultiplier() {
+  if (!userData) return 1;
+  if (userData.rateMultiplier && typeof userData.rateMultiplier === 'number') {
+    return userData.rateMultiplier;
+  }
+  if (userData.miningPower) {
+    const parsed = parseFloat(String(userData.miningPower).replace(/x/i, ''));
+    if (!isNaN(parsed) && parsed > 0) return parsed;
+  }
+  return 1;
+}
+
+// Turns anything stored for "last mined" into epoch milliseconds.
 function toMillis(v) {
   if (!v) return 0;
   if (typeof v === "number") return isFinite(v) ? v : 0;
@@ -60,11 +72,11 @@ function getLocalLastMine() { try { return toMillis(localStorage.getItem(mineKey
 let telegramLink = "https://t.me/apex_customercare";
 
 const TUTORIAL_STEPS = [
-  { id: "mineBtn", title: "Start Mining", desc: "Tap the Mine button to earn your first ₵250. Mining runs daily!", position: "bottom" },
+  { id: "mineBtn", title: "Start Mining", desc: "Tap the Mine button to earn daily rewards. Mining runs daily!", position: "bottom" },
   { id: "withdrawBtn", title: "Withdraw Cash", desc: "Tap Withdraw to cash out your earnings to your linked bank account.", position: "bottom" },
   { id: "tasksBtn", title: "Complete Tasks", desc: "Visit the Tasks page to earn extra cash by completing simple social media tasks.", position: "bottom" },
   { id: "eyeBtn", title: "Hide Balance", desc: "Tap the eye icon anytime to hide or show your balance for privacy.", position: "bottom" },
-  { id: "claimArea", title: "Claim Every Minute", desc: "Tap Claim every 60 seconds to collect ₵16.67 free cash! Up to 50 times daily.", position: "top" },
+  { id: "claimArea", title: "Claim Every Minute", desc: "Tap Claim every 60 seconds to collect free cash! Up to 50 times daily.", position: "top" },
   { id: "checkinBtn", title: "Daily Check-In", desc: "Check in every day to collect increasing rewards: 4.17, 8.33, 12.5, 16.67, 25, 41.67, 83.33!", position: "top" }
 ];
 let currentTutorialStep = 0;
@@ -105,8 +117,6 @@ function setupRealtimeListener() {
       // Merge Firestore document into memory and localStorage
       const prevMine = toMillis(userData && userData.lastMineTime);
       userData = { ...userData, ...liveData };
-      // lastMineTime is always kept as plain epoch millis, using the newest value we know of,
-      // so a pending (null) server timestamp or stale cache can never reset the 24h cooldown.
       userData.lastMineTime = Math.max(prevMine, toMillis(liveData.lastMineTime), getLocalLastMine());
       if (liveData.balance !== undefined && !isBouncing) {
         balance = parseFloat(liveData.balance);
@@ -143,7 +153,7 @@ function saveUserData(updatedFields = {}) {
     const payload = {
       balance: balance,
       totalMined: userData.totalMined || 0,
-      miningPower: userData.miningPower || "1x",
+      miningPower: userData.miningPower || (getPlanMultiplier() + "x"),
       streak: checkinData.streak || 0,
       lastCheckin: checkinData.lastCheckin || null,
       claimedDays: checkinData.claimedDays || [],
@@ -173,7 +183,7 @@ function saveUserData(updatedFields = {}) {
   }
 }
 
-// Social popup handles come from Firestore settings/payment (telegramLink, whatsappLink)
+// Social popup handles from Firestore settings/payment
 let paymentHandles = { telegram: "", whatsapp: "" };
 try {
   const cachedPayment = JSON.parse(localStorage.getItem("9jaCashAdminConfig"));
@@ -191,7 +201,6 @@ function loadTelegramConfig() {
         paymentHandles = { telegram: d.telegramLink || "", whatsapp: d.whatsappLink || "" };
         localStorage.setItem("9jaCashAdminConfig", JSON.stringify({ telegramLink: telegramLink, whatsappLink: paymentHandles.whatsapp }));
         updateTelegramLink();
-        // If the popup is already visible, refresh its link
         const p = document.getElementById("socialJoinPopup");
         if (p && p.classList.contains("show")) renderSocialPopup();
       }
@@ -401,8 +410,17 @@ function renderUserInfo() {
 
   const totalMinedEl = document.getElementById("totalMined");
   const miningPowerEl = document.getElementById("miningPower");
+  const multiplier = getPlanMultiplier();
+
   if (totalMinedEl) totalMinedEl.textContent = formatMoney(userData.totalMined || 0);
-  if (miningPowerEl) miningPowerEl.textContent = userData.miningPower || "1x";
+  if (miningPowerEl) miningPowerEl.textContent = userData.miningPower || (multiplier + "x");
+
+  // Dynamically update Claim Amount UI element if present
+  const currentClaimAmount = (BASE_CLAIM_AMOUNT * multiplier).toFixed(2);
+  const claimTitleEl = document.querySelector(".claim-title");
+  if (claimTitleEl) {
+    claimTitleEl.textContent = "Claim ₵" + currentClaimAmount;
+  }
 }
 
 function initCheckin() {
@@ -426,7 +444,9 @@ function doCheckin() {
   const todayStr = new Date().toDateString();
   if (checkinData.lastCheckin === todayStr) { showToast("Already checked in today!"); return; }
   const dayIndex = checkinData.claimedDays.length;
-  const amount = CHECKIN_REWARDS[Math.min(dayIndex, 6)];
+  const baseAmount = CHECKIN_REWARDS[Math.min(dayIndex, 6)];
+  const multiplier = getPlanMultiplier();
+  const amount = Number((baseAmount * multiplier).toFixed(2));
 
   balance += amount;
   userData.balance = balance;
@@ -455,8 +475,11 @@ function doCheckin() {
 }
 
 async function startMining() {
-  if (isMining) return;          // ignore double taps while a mine is in progress
+  if (isMining) return;
   isMining = true;
+
+  const multiplier = getPlanMultiplier();
+  const effectiveMineAmount = BASE_MINE_AMOUNT * multiplier;
 
   const showCooldown = function (lastMine) {
     const remainingMs = MINE_COOLDOWN_MS - (Date.now() - lastMine);
@@ -475,7 +498,6 @@ async function startMining() {
   };
 
   try {
-    // Newest "last mined" time known on this device (memory + dedicated backup key)
     const localLast = Math.max(toMillis(userData && userData.lastMineTime), getLocalLastMine());
     if (Date.now() - localLast < MINE_COOLDOWN_MS) { showCooldown(localLast); return; }
 
@@ -483,8 +505,6 @@ async function startMining() {
     const mineTime = Date.now();
 
     if (db && userData && userData.phone) {
-      // Authoritative check + reward in one atomic Firestore transaction:
-      // reads the server copy (not the cache), so reloads / other tabs / other devices can't double-mine.
       const ref = db.collection("users").doc(String(userData.phone));
       let outcome;
       try {
@@ -496,8 +516,8 @@ async function startMining() {
             return { ok: false, last: Math.max(serverLast, localLast) };
           }
           const base = d.balance !== undefined ? parseFloat(d.balance) || 0 : balance;
-          const total = (parseFloat(d.totalMined) || 0) + MINE_AMOUNT;
-          const nb = base + MINE_AMOUNT;
+          const total = (parseFloat(d.totalMined) || 0) + effectiveMineAmount;
+          const nb = base + effectiveMineAmount;
           tx.set(ref, {
             balance: nb,
             totalMined: total,
@@ -520,34 +540,31 @@ async function startMining() {
       newBalance = outcome.balance;
       newTotal = outcome.totalMined;
     } else {
-      // No Firestore available: fall back to the local-only guard
-      newBalance = balance + MINE_AMOUNT;
-      newTotal = (userData.totalMined || 0) + MINE_AMOUNT;
+      newBalance = balance + effectiveMineAmount;
+      newTotal = (userData.totalMined || 0) + effectiveMineAmount;
     }
 
-    // Persist the cooldown locally right away (plain number, safe to serialise)
     try { localStorage.setItem(mineKey(), String(mineTime)); } catch (e) { }
     balance = newBalance;
     userData.balance = balance;
     userData.totalMined = newTotal;
     userData.lastMineTime = mineTime;
-    // lastMineTime/balance were already written by the transaction when online
     localStorage.setItem("9jaCashUser", JSON.stringify(userData));
     localStorage.setItem("walletBalance", balance);
     updateBalance();
     renderUserInfo();
     if (!(db && userData.phone)) saveUserData({ totalMined: userData.totalMined });
-    addToActivity("Daily Mining Reward", MINE_AMOUNT, "in");
+    addToActivity("Daily Mining Reward (" + multiplier + "x)", effectiveMineAmount, "in");
 
     if (typeof Swal !== 'undefined') {
       Swal.fire({
         icon: 'success',
         title: 'Mining Successful! 🎉',
-        text: 'You mined ₵' + MINE_AMOUNT.toLocaleString() + ' today! Come back in 24 hours.',
+        text: 'You mined ₵' + effectiveMineAmount.toLocaleString() + ' today! Come back in 24 hours.',
         confirmButtonColor: '#6366f1'
       });
     } else {
-      showToast("Mined +₵" + MINE_AMOUNT.toLocaleString());
+      showToast("Mined +₵" + effectiveMineAmount.toLocaleString());
     }
   } finally {
     isMining = false;
@@ -610,18 +627,21 @@ function doClaim() {
   if (claimData.claimsToday >= MAX_CLAIMS_PER_DAY) { showToast("Daily claim limit reached!"); return; }
   if (secondsLeft > 0) { showToast("Please wait for the timer."); return; }
 
-  balance += CLAIM_AMOUNT;
+  const multiplier = getPlanMultiplier();
+  const claimAmount = Number((BASE_CLAIM_AMOUNT * multiplier).toFixed(2));
+
+  balance += claimAmount;
   userData.balance = balance;
   claimData.claimsToday = (claimData.claimsToday || 0) + 1;
   claimData.lastClaim = Math.floor(Date.now() / 1000);
 
   localStorage.setItem("claimData", JSON.stringify(claimData));
   saveUserData();
-  addToActivity("Minute Claim Reward", CLAIM_AMOUNT, "in");
+  addToActivity("Minute Claim Reward (" + multiplier + "x)", claimAmount, "in");
 
   secondsLeft = CLAIM_INTERVAL;
   startClaimTimer();
-  showToast("Claimed +₵" + CLAIM_AMOUNT.toLocaleString());
+  showToast("Claimed +₵" + claimAmount.toLocaleString());
 }
 
 function editBank() {
@@ -842,8 +862,7 @@ function downloadAppAPK() {
   window.open(APK_URL, "_blank");
 }
 
-
-// ---- Customer Care modal: handles come from Firestore settings/redirects ----
+// Customer Care modal logic
 let socialHandles = { telegram: "", whatsapp: "" };
 try {
   const cached = JSON.parse(localStorage.getItem("9jaCashSocialHandles"));
@@ -863,7 +882,6 @@ function buildWhatsappUrl(handle) {
   return digits ? "https://wa.me/" + digits : "";
 }
 
-// Customer Care modal: Telegram username / WhatsApp number from settings/redirects
 function updateCustomerCareLinks() {
   const tg = document.getElementById("modalTelegramBtn");
   const wa = document.getElementById("modalWhatsappBtn");
@@ -889,7 +907,6 @@ function loadSocialHandles() {
   }, function (err) { });
 }
 
-// Alternates Telegram / WhatsApp on each page load; falls back to whichever exists
 function pickSocialPlatform() {
   const tg = buildTelegramUrl(paymentHandles.telegram);
   const wa = buildWhatsappUrl(paymentHandles.whatsapp);
@@ -930,7 +947,7 @@ function renderSocialPopup() {
 function showSocialPopup() {
   const p = document.getElementById("socialJoinPopup");
   if (!p) return;
-  if (!renderSocialPopup()) return; // no handles available, keep hidden
+  if (!renderSocialPopup()) return;
   p.classList.add("show");
 }
 
@@ -940,48 +957,45 @@ function dismissSocialPopup() {
 }
 
 function initSocialPopup() {
-  // Alternate platform each page load
   let last = "whatsapp";
   try { last = localStorage.getItem("9jaCashLastSocial") || "whatsapp"; } catch (e) { }
   window.__socialPlatform = last === "telegram" ? "whatsapp" : "telegram";
   try { localStorage.setItem("9jaCashLastSocial", window.__socialPlatform); } catch (e) { }
 
-  updateCustomerCareLinks(); // apply cached handles immediately
+  updateCustomerCareLinks();
   loadSocialHandles();
-  // Show the popup 3 seconds after every page load
   setTimeout(showSocialPopup, 3000);
 }
 
 function startLiveWithdrawalPopups() {
   const users = [
-      "Kwame A.", "Kofi M.", "Abena B.", "Yaw O.", "Ama K.", 
-      "Akosua S.", "Kweku T.", "Adwoa P.", "Ekow B.", "Efia A.",
-      "Ato K.", "Yaa M.", "Kojo E.", "Afia O.", "Kwadwo S.",
-      "Akwasi A.", "Abenaa C.", "Kofi B.", "Yaw D.", "Ama F.",
-      "Kwaku N.", "Adjoa G.", "Abeiku H.", "Akua J.", "Fiifi K.",
-      "Esi L.", "Kobi M.", "Afiba N.", "Kwapong P.", "Araba Q.",
-      "Kwena R.", "Baaba S.", "Ebo T.", "Mansah U.", "Jojo V.",
-      "Badu W.", "Kesse X.", "Anane Y.", "Darko Z.", "Boateng A.",
-      "Osei B.", "Mensah C.", "Agyeman D.", "Asante E.", "Appiah F.",
-      "Gyamfi G.", "Owusu H.", "Agyapong J.", "Frimpong K.", "Opoku L.",
-      "Aidoo M.", "Aboagye N.", "Sarpong P.", "Quaye Q.", "Addison R.",
-      "Lamptey S.", "Nii T.", "Naa U.", "Tetteh V.", "Lartey W.",
-      "Aryee X.", "Odoi Y.", "Amankwah Z.", "Baah A.", "Danquah B.",
-      "Kyei C.", "Boadu D.", "Kwarteng E.", "Nyarko F.", "Poku G.",
-      "Agyemang H.", "Sarkodie J.", "Adomako K.", "Baffoe L.", "Dapaah M.",
-      "Antwi N.", "Ghanney P.", "Agyei Q.", "Yeboah R.", "Donkor S.",
-      "Asare T.", "Nketia U.", "Kankam V.", "Gyasi W.", "Acheampong X.",
-      "Essien Y.", "Mintah Z.", "Agyare A.", "Ofori B.", "Duah C.",
-      "Kwateng D.", "Oti E.", "Agyeku F.", "Twum G.", "Agyeiwaa H.",
-      "Asamoah J.", "Boakye K.", "Opare L.", "Sefa M.", "Sarfo N."
-    ];
+    "Kwame A.", "Kofi M.", "Abena B.", "Yaw O.", "Ama K.", 
+    "Akosua S.", "Kweku T.", "Adwoa P.", "Ekow B.", "Efia A.",
+    "Ato K.", "Yaa M.", "Kojo E.", "Afia O.", "Kwadwo S.",
+    "Akwasi A.", "Abenaa C.", "Kofi B.", "Yaw D.", "Ama F.",
+    "Kwaku N.", "Adjoa G.", "Abeiku H.", "Akua J.", "Fiifi K.",
+    "Esi L.", "Kobi M.", "Afiba N.", "Kwapong P.", "Araba Q.",
+    "Kwena R.", "Baaba S.", "Ebo T.", "Mansah U.", "Jojo V.",
+    "Badu W.", "Kesse X.", "Anane Y.", "Darko Z.", "Boateng A.",
+    "Osei B.", "Mensah C.", "Agyeman D.", "Asante E.", "Appiah F.",
+    "Gyamfi G.", "Owusu H.", "Agyapong J.", "Frimpong K.", "Opoku L.",
+    "Aidoo M.", "Aboagye N.", "Sarpong P.", "Quaye Q.", "Addison R.",
+    "Lamptey S.", "Nii T.", "Naa U.", "Tetteh V.", "Lartey W.",
+    "Aryee X.", "Odoi Y.", "Amankwah Z.", "Baah A.", "Danquah B.",
+    "Kyei C.", "Boadu D.", "Kwarteng E.", "Nyarko F.", "Poku G.",
+    "Agyemang H.", "Sarkodie J.", "Adomako K.", "Baffoe L.", "Dapaah M.",
+    "Antwi N.", "Ghanney P.", "Agyei Q.", "Yeboah R.", "Donkor S.",
+    "Asare T.", "Nketia U.", "Kankam V.", "Gyasi W.", "Acheampong X.",
+    "Essien Y.", "Mintah Z.", "Agyare A.", "Ofori B.", "Duah C.",
+    "Kwateng D.", "Oti E.", "Agyeku F.", "Twum G.", "Agyeiwaa H.",
+    "Asamoah J.", "Boakye K.", "Opare L.", "Sefa M.", "Sarfo N."
+  ];
 
   setInterval(() => {
     const popup = document.getElementById("liveWithdrawalPopup");
     if (!popup) return;
 
     const user = users[Math.floor(Math.random() * users.length)];
-    // Random amount between 450 and 20000
     const amt = Math.floor(Math.random() * (20000 - 450 + 1)) + 450;
 
     const avatarEl = document.getElementById("liveWithdrawalAvatar");
@@ -1021,7 +1035,6 @@ document.addEventListener("DOMContentLoaded", function () {
   initSocialPopup();
 });
 
-// Sample Notifications Data Array
 let userNotifications = [
   {
     id: 1,
@@ -1038,10 +1051,6 @@ let userNotifications = [
     read: false
   }
 ];
-
-/* ===================================================
-   1. NOTIFICATIONS MODAL FUNCTIONS
-   =================================================== */
 
 function openNotificationsModal() {
   const modal = document.getElementById('notificationsOverlay');
@@ -1114,10 +1123,6 @@ function markAllNotificationsAsRead() {
   }
 }
 
-/* ===================================================
-   2. CUSTOMER CARE MODAL FUNCTIONS
-   =================================================== */
-
 function openCustomerCareModal() {
   const modal = document.getElementById('customerCareModal');
   if (modal) {
@@ -1134,7 +1139,6 @@ function closeCustomerCareModal(event) {
   }
 }
 
-// Close modals on Escape key press
 document.addEventListener('DOMContentLoaded', updateBellDot);
 
 document.addEventListener('keydown', function (e) {
