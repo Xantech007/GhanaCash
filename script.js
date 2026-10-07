@@ -376,7 +376,49 @@ function updateBalance() {
     if (formatted.includes(".")) { el.innerHTML = formatted.replace(/\.(\d+)$/, '<span>.$1</span>'); }
     else { el.innerHTML = formatted + '<span>.00</span>'; }
   }
+  fitBalance();
 }
+
+// Shrinks the balance font so large amounts never overflow the card
+function fitBalance() {
+  const el = document.getElementById("walletBalance");
+  if (!el) return;
+  const container = el.parentElement;
+  if (!container) return;
+
+  // Reset to the stylesheet's font size before measuring
+  el.style.whiteSpace = "nowrap";
+  el.style.fontSize = "";
+
+  const cs = getComputedStyle(container);
+  const available = container.clientWidth - parseFloat(cs.paddingLeft || 0) - parseFloat(cs.paddingRight || 0);
+  if (available <= 0) return; // card not visible yet
+
+  const measure = function () {
+    const range = document.createRange();
+    range.selectNodeContents(el);
+    return range.getBoundingClientRect().width;
+  };
+
+  let width = measure();
+  if (width <= available) return;
+
+  const baseSize = parseFloat(getComputedStyle(el).fontSize);
+  const minSize = 14;
+  let size = Math.max(minSize, Math.floor(baseSize * (available / width)));
+  el.style.fontSize = size + "px";
+
+  // Fine-tune in case the decimal span isn't scaled proportionally
+  let guard = 0;
+  while (measure() > available && size > minSize && guard < 40) {
+    size -= 1;
+    el.style.fontSize = size + "px";
+    guard++;
+  }
+}
+
+window.addEventListener("resize", fitBalance);
+if (document.fonts && document.fonts.ready) document.fonts.ready.then(fitBalance);
 
 function toggleBalance() {
   balanceHidden = !balanceHidden;
