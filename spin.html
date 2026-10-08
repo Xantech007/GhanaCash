@@ -2436,7 +2436,7 @@
       })
       .catch(err => {
         // Fallback local spin calculation if backend API server is offline
-        const randomIndex = Math.floor(Math.random() * segments.length);
+        const randomIndex = pickWeightedSegmentIndex();
         const targetSeg = segments[randomIndex];
         const mult = targetSeg.multiplier;
         const payout = stakeAmount * mult;
@@ -2444,6 +2444,40 @@
         
         executeCasinoSpin(randomIndex, mult, payout, fallbackFinalBalance);
       });
+    }
+
+    // ========== WEIGHTED FALLBACK ODDS (percent, same order as `segments`) ==========
+    // Losing (BOMB, 0.2x, 0.5x, 0.8x) = 50%. Remaining 50% is split by multiplier:
+    // the higher the multiplier, the rarer it is. Total = 100. Theoretical RTP ≈ 94.8%.
+    const SEGMENT_WEIGHTS = [
+      20,   // BOMB (0x)
+      14,   // 0.2x
+      10,   // 0.5x
+      6,    // 0.8x
+      21,   // 1x
+      10,   // 1.2x
+      7,    // 1.5x
+      4,    // 2x
+      3,    // 2.5x
+      2,    // 3x
+      1,    // 3.5x
+      0.8,  // 4x
+      0.5,  // 5x
+      0.3,  // 6x
+      0.2,  // 8x
+      0.1,  // 10x
+      0.08, // 20x
+      0.02  // 100x
+    ];
+
+    function pickWeightedSegmentIndex() {
+      const total = SEGMENT_WEIGHTS.reduce((a, b) => a + b, 0);
+      let r = Math.random() * total;
+      for (let i = 0; i < SEGMENT_WEIGHTS.length; i++) {
+        r -= SEGMENT_WEIGHTS[i];
+        if (r < 0) return i;
+      }
+      return 0;
     }
 
     function executeCasinoSpin(targetIndex, multiplier, payoutAmount, finalBalance) {
